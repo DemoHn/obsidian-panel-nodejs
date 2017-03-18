@@ -1,0 +1,17 @@
+{
+  "name": "obsidian-panel",
+  "version": "0.6.0",
+  "description": "A Minecraft Server Management Panel (commercial)",
+  "main": "start.js",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "author": "Nigshoxiz",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "node-ipc": "^8.10.3"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  }
+}
