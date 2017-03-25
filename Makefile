@@ -1,5 +1,8 @@
-init_env:
+init:
 	npm install
 	cd frontend && npm install
-	cd ../process_watcher/native && npm install
+compile:
+	cd process_watcher/native && make compile
+	
+
 

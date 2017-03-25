@@ -1,11 +1,15 @@
-ipc:
-  listen_port: 852
-ftp:
-  listen_port: 21
 global:
   log_file: /var/log/ob-panel.log
   data_dir: $HOME$/ob-panel
   zhao: 1
+  lang: zh-CN
+db:
+  type: sqlite
+  mysql_port: 3306
+  mysql_user: root
+  mysql_password:   
 server:
   host: 0.0.0.0
   listen_port: 80
+ftp:
+  listen_port: 21

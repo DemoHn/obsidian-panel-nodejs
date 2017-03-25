@@ -1,3 +1,4 @@
 frontend/node_modules/
 node_modules/
-process_watcher/native/node_modules/
+_env/
+.vscode/

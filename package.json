@@ -9,6 +9,7 @@
   "author": "Nigshoxiz",
   "license": "UNLICENSED",
   "dependencies": {
+    "mkdirp": "^0.5.1",
     "node-ipc": "^8.10.3"
   },
   "devDependencies": {
