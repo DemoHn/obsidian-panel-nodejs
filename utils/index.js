@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const yaml = require("js-yaml");
+
 module.exports = {
     types : require("./types"),
     rtn : require("./rtn"),
@@ -18,7 +20,19 @@ module.exports = {
             return false;
         }
     },
-
+    // @require try-catch block!
+    get_config : ()=>{
+        const config_file = path.resolve(__dirname, "..", "config.yml"); 
+        try{
+            let doc = yaml.safeLoad(
+                fs.readFileSync(config_file,{encoding:'utf8'})
+            );
+            return doc;
+        } catch(e) {
+            console.error(e);
+            throw Error(`load config file '${config_file}' failed!`);
+        }
+    },
     // fs utils
     read : (filename)=>{
         const data = fs.readFileSync(filename, {encoding:"utf8"});
@@ -28,7 +42,7 @@ module.exports = {
         fs.wrieFileSync(filename, data, {flag: 'w+'});
         return null;
     },
-    exists: (filename){
+    exists: (filename)=>{
         try {
             fs.accessSync(filename);
         } catch (error) {

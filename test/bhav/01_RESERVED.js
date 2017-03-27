@@ -1,5 +1,4 @@
 const expect = require("chai").expect;
-const watcher = require("../../process_watcher/lib/process_watcher");
 
 describe('Process Watcher', ()=>{
     // since launching an actual MC process will cost too much time,
