@@ -1,5 +1,5 @@
 global:
-  log_file: /var/log/ob-panel.log
+  log_file: $LOG_DIR$/ob-panel.log
   data_dir: $HOME$/ob-panel
   zhao: 1
   lang: zh-CN
@@ -13,4 +13,5 @@ server:
   host: 0.0.0.0
   listen_port: 80
 ftp:
+  host: 0.0.0.0
   listen_port: 21

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const os   = require("os");
 
 module.exports = {
     types : require("./types"),
@@ -20,13 +21,26 @@ module.exports = {
             return false;
         }
     },
-    // @require try-catch block!
-    get_config : ()=>{
-        const config_file = path.resolve(__dirname, "..", "config.yml"); 
+    // @require try-catch block maybe!
+    get_config : (filename)=>{
+        let config_file = path.resolve(__dirname, "..", "config.yml"); 
         try{
-            let doc = yaml.safeLoad(
-                fs.readFileSync(config_file,{encoding:'utf8'})
-            );
+            if(filename !== undefined){
+                config_file = filename;
+            }
+
+            let conf_str = fs.readFileSync(config_file, {encoding:"utf8"});
+            // replace variables
+            if(conf_str == null){
+                return null;
+            }else{
+                let $root_dir = os.homedir();
+                let $tmp_dir  = os.tmpdir();
+
+                conf_str = conf_str.replace(/\$ROOT_DIR\$/g, $root_dir);
+                conf_str = conf_str.replace(/\$TMP_DIR\$/g, $tmp_dir);
+            }
+            let doc = yaml.safeLoad(conf_str);
             return doc;
         } catch(e) {
             console.error(e);
@@ -39,7 +53,7 @@ module.exports = {
         return data;
     },
     write: (filename, data)=>{
-        fs.wrieFileSync(filename, data, {flag: 'w+'});
+        fs.writeFileSync(filename, data, {flag: 'w+'});
         return null;
     },
     exists: (filename)=>{
@@ -49,5 +63,9 @@ module.exports = {
             return false;
         }
         return true;
+    },
+    //path route
+    resolve: (root_dir, ...args)=>{
+        return path.resolve(root_dir, ...args);
     }
 }

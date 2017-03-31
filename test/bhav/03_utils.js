@@ -49,4 +49,11 @@ describe('utils', () => {
             expect(types.isJSONString(rtn.error("400"))).to.be.true;
         });
     });
+
+    describe('get config', ()=>{
+        it("shall read configuration file correctly", ()=>{
+            const config = utils.get_config();
+            expect(config["global"]["zhao"]).to.be.oneOf([0,1]);
+        });
+    });
 });

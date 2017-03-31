@@ -36,5 +36,8 @@ module.exports = {
     },
     isString : (item)=>{
         return item !== null && typeof item === "string";
+    },
+    isPlainObject: function(obj) {
+        return require("is-plain-object")(obj);
     }
 }
