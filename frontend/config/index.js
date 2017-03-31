@@ -5,7 +5,7 @@ module.exports = {
   build: {
     env: require('./prod.env'),
     index: path.resolve(__dirname, '../../app/templates/superadmin/index.html'),
-    assetsRoot: path.resolve(__dirname, '../../app'),
+    assetsRoot: path.resolve(__dirname, '../..'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     productionSourceMap: true,

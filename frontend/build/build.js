@@ -20,14 +20,16 @@ var spinner = ora('building for production...')
 spinner.start()
 
 var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirectory);
+console.log(assetsPath)
 rm("-R", assetsPath+"/js/*")
+rm("-R", assetsPath+"/html/*")
 rm("-R", assetsPath+"/css/startup.*")
 rm("-R", assetsPath+"/css/server_inst.*")
 rm("-R", assetsPath+"/css/super_admin.*")
 
-cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.html");
-cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
-cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");
+cp('-R','server_inst.index.html',assetsPath+"/html/server_inst.html");
+cp('-R','super_admin.index.html',assetsPath+"/html/super_admin.html");
+cp('-R','startup.index.html',assetsPath+"/html/startup.html");
 webpack(webpackConfig, function (err, stats) {
     //fs.writeFileSync("stats.json", JSON.stringify(stats.toJson("verbose")));
     /*console.log(stats.toString({

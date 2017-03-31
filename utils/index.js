@@ -21,7 +21,7 @@ module.exports = {
             return false;
         }
     },
-    // @require try-catch block maybe!
+    // write & read global config of the whole panel
     get_config : (filename)=>{
         let config_file = path.resolve(__dirname, "..", "config.yml"); 
         try{
@@ -47,6 +47,9 @@ module.exports = {
             throw Error(`load config file '${config_file}' failed!`);
         }
     },
+    write_config : (conf)=>{
+
+    },
     // fs utils
     read : (filename)=>{
         const data = fs.readFileSync(filename, {encoding:"utf8"});
@@ -67,5 +70,27 @@ module.exports = {
     //path route
     resolve: (root_dir, ...args)=>{
         return path.resolve(root_dir, ...args);
+    },
+    // startup lock
+    // in old python, this corresponds to the configuarion _RESTART_LOCK
+    get_startup_lock: ()=>{
+        try{
+            fs.accessSync(path.resolve(__dirname, "..", ".startup.lck"));
+        } catch(err){
+            return false;
+        }
+        return true;
+    },
+    set_startup_lock: (status)=>{
+        let lock_file = path.resolve(__dirname, "..", ".startup.lck");
+        if(status){
+            // touch lock file
+            fs.writeFileSync(lock_file, "");
+        }else{
+            try {
+                fs.unlinkSync(lock_file);            
+            } catch (error) {   
+            }
+        }
     }
 }

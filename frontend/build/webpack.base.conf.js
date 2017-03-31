@@ -12,8 +12,7 @@ var cssSourceMapDev = (env === 'development' && config.dev.cssSourceMap);
 var cssSourceMapProd = (env === 'production' && config.build.productionSourceMap);
 var useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
 
-var version = fs.readFileSync("../VERSION", "utf-8"); 
-version = version.trim();
+let version = require("../../package.json")["version"];
 
 var _entry = {
       "super_admin.app": './src/super_admin.main.js',
