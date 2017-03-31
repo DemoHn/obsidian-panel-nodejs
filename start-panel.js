@@ -5,6 +5,7 @@ const mkdirp = require("mkdirp");
 const app = require("./app").app;
 const server = require("./app").server;
 const utils = require("./utils");
+const model = require("./app/model");
 
 // check if config.yml exists
 const config_yml = utils.resolve(__dirname, "config.yml");
@@ -93,8 +94,20 @@ if(os.platform() === "linux" && !is_root){
     }
 }
 
-let server_port = config["server"]["listen_port"];
-// start (listen) the process
-console.log("[INFO] Start panel!");
-console.log(`[INFO] Server listen on ${server_port}`);
-server.listen(server_port);
+// sync database
+model.sequelize.sync({force: true}).then(
+    // if success
+    ()=>{
+        // start process
+        let server_port = config["server"]["listen_port"];
+        // start (listen) the process
+        console.log("[INFO] Start panel!");
+        console.log(`[INFO] Server listen on ${server_port}`);
+        server.listen(server_port);
+    },
+    // if error
+    (err)=>{
+        console.log("[ERR-SQLERR] Sync Database Data Error!");
+        console.log(err);
+    }
+);

@@ -8,7 +8,7 @@ module.exports = (seq_obj)=>{
         // inst id for this data point
         inst_id : Seq.INTEGER,
         // FTP password hash
-        hash = Seq.STRING(120),
+        hash : Seq.STRING(120),
         // last login
         last_login : Seq.DATE,
         // owner's id

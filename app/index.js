@@ -11,6 +11,12 @@ app.set('views', path.join(__dirname, '..', 'static', 'html'));
 app.set('view engine', 'ejs');
 app.engine("html", require('ejs').renderFile);
 
+// body parser
+// for parsing application/json
+app.use(bodyParser.json());
+// for parsing application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // serve static resources
 require("./views")(app);
 require("./api")(app);

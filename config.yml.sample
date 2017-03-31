@@ -6,6 +6,7 @@ global:
 db:
   type: sqlite
   name: ob_panel
+  mysql_host: localhost
   mysql_port: 3307
   mysql_user: root
   mysql_password: 

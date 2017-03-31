@@ -24,6 +24,7 @@ module.exports = (app)=>{
     app.get(`/startup.app-${version}.js`, (req, res, next)=>{
         res.sendFile(utils.resolve(__dirname, "..", "static", "js", `startup.app-${version}.build.js`));
     });
+    
     // 3. index & login file
     app.get("/", (req, res, next)=>{
         // while panel is still on startup stage

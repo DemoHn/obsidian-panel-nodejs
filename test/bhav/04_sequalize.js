@@ -6,7 +6,7 @@ describe('Sequelize', () => {
     let sequelize;
     let User;
     beforeEach((done)=>{
-        sequelize = new Sequelize('ob_panel','ob_panel', null, {
+        sequelize = new Sequelize('ob_panel',null , null, {
             dialect: "sqlite",
             storage: `${__dirname}/test.db`
         });

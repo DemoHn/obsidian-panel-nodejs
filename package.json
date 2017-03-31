@@ -24,6 +24,8 @@
     "sqlite3": "^3.1.8"
   },
   "devDependencies": {
-    "mocha": "^3.2.0"
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "supertest": "^3.0.0"
   }
 }

@@ -1,3 +1,4 @@
+// include all submodules
 module.exports = (app)=>{
-    require("./startup")(app);
+    app.use("/startup", require("./startup"));
 }
