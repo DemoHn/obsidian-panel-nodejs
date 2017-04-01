@@ -1,5 +1,7 @@
 const express = require('express');
 const utils = require("../../utils");
+const startup_ctrl = require("../controller/startup");
+
 let router = express.Router();
 
 // only on startup
@@ -20,6 +22,16 @@ router.get("/", (req, res)=>{
     })
 });
 
-//
+// test mysql connection
+router.post("/test_mysql_connection", startup_ctrl.test_mysql_db);
+
+// submit data
+router.post("/submit_config", 
+    startup_ctrl.set_port_config,
+    startup_ctrl.set_db_config,
+    startup_ctrl.init_main_db,
+    startup_ctrl.init_super_admin
+);
+
 module.exports = router;
 

@@ -56,4 +56,12 @@ describe('utils', () => {
             expect(config["global"]["zhao"]).to.be.oneOf([0,1]);
         });
     });
+
+    describe('dump config', ()=>{
+        it("shall dump config data correctly", ()=>{
+            const config = utils.dump_config({'A':{'B':2}});
+            expect(config).to.be.equal("A:\n  B: 2\n");
+        });
+    });
+    
 });

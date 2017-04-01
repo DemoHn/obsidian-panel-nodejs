@@ -27,87 +27,113 @@ const merge_dict = (dict_conf, dict_sample)=>{
     return dict_sample;
 };
 
-// update config
-if(!utils.exists(config_yml)){
-    utils.write(config_yml, utils.read(config_yml_sample));
-}else{
-    let obj_conf = utils.get_config();
-    let obj_conf_sample = utils.get_config(config_yml_sample);
+const update_config = () => {
+    // update config
+    if(!utils.exists(config_yml)){
+        utils.write(config_yml, utils.read(config_yml_sample));
+    }else{
+        let obj_conf = utils.get_config();
+        let obj_conf_sample = utils.get_config(config_yml_sample);
+    }
+
+    return 1;
 }
 
-let is_root = false;
-// if this process is running under root privilege
-// if so, listen to port <1024 is allowed
-if(process.getuid && process.getuid() == 0){
-    is_root = true;
-}
+const check_config = () => {
+    let is_root = false;
+    // if this process is running under root privilege
+    // if so, listen to port <1024 is allowed
+    if(process.getuid && process.getuid() == 0){
+        is_root = true;
+    }
 
-// access data dir & log file
-let log_file, data_dir, config;
-try{
-    config = utils.get_config();
-    log_file = config['global']['log_file'];
-    data_dir = config['global']['data_dir'];
+    // access data dir & log file
+    let log_file, data_dir, config;
+    try{
+        config = utils.get_config();
+        log_file = config['global']['log_file'];
+        data_dir = config['global']['data_dir'];
 
-    mkdirp.sync(data_dir);
-    // == touch ${log_file}
-    utils.write(log_file, "");
-}catch(err){
-    console.log(
-`[ERR-ACCESS] Access ${log_file} or ${data_dir} failed! Maybe directory not exists?
-Maybe you can try running this process under root privilege?`);
-    return -1;
-}
-// then mkdir all subdir in data_dir
-const sub_dirs = ['env', 'files', 'servers', 'sql', 'uploads', 'backups'];
-for(let sub_dir in sub_dirs){
-    mkdirp.sync(utils.resolve(data_dir, sub_dirs[sub_dir]));
-}
-// if db.type = mysql,
-// try database connection
-if(config["db"]["type"] === "mysql"){
-    let mysql = require("mysql");
-    let conn  = mysql.createConnection({
-        host: config["db"]["mysql_host"],
-        user: config["db"]["mysql_user"],
-        password: config["db"]["mysql_password"],
-        port: config["db"]["mysql_port"],
-        database: config["db"]["name"]
-    });
+        mkdirp.sync(data_dir);
+        // == touch ${log_file}
+        utils.write(log_file, "");
+    }catch(err){
+        console.log(
+    `[ERR-ACCESS] Access ${log_file} or ${data_dir} failed! Maybe directory not exists?
+    Maybe you can try running this process under root privilege?`);
+        return -1;
+    }
+    // then mkdir all subdir in data_dir
+    const sub_dirs = ['env', 'files', 'servers', 'sql', 'uploads', 'backups'];
+    for(let sub_dir in sub_dirs){
+        mkdirp.sync(utils.resolve(data_dir, sub_dirs[sub_dir]));
+    }
+    // if db.type = mysql,
+    // try database connection
+    if(config["db"]["type"] === "mysql"){
+        let mysql = require("mysql");
+        let conn  = mysql.createConnection({
+            host: config["db"]["mysql_host"],
+            user: config["db"]["mysql_user"],
+            password: config["db"]["mysql_password"],
+            port: config["db"]["mysql_port"],
+            database: null
+        });
 
-    conn.connect((err)=>{
-        conn.destroy();
-        if(err != null){
-            console.error(`[ERR-SQLERR] Connection Database Error! Code: ${err.code}`)
-            return -2;
+        conn.connect((err)=>{
+            conn.destroy();
+            if(err != null){
+                console.error(`[ERR-SQLERR] Connection Database Error! Code: ${err.code}`)
+                return -2;
+            }
+        });
+    }
+    // on UNIX like system, non-root users are allowed to start a process
+    // that binds the port under 1024
+    // thus, 
+    if(os.platform() === "linux" && !is_root){
+        if(config["server"]["listen_port"] < 1024 &&
+        config["ftp"]["listen_port"] < 1024){
+            console.log("[ERR-BINDERR] For non-root users, it's not allowed to bind port under 1024! You have to rerun the process under root privilege!");
+            return -3;
         }
-    });
-}
-// on UNIX like system, non-root users are allowed to start a process
-// that binds the port under 1024
-// thus, 
-if(os.platform() === "linux" && !is_root){
-    if(config["server"]["listen_port"] < 1024 &&
-    config["ftp"]["listen_port"] < 1024){
-        console.log("[ERR-BINDERR] For non-root users, it's not allowed to bind port under 1024! You have to rerun the process under root privilege!");
-        return -3;
     }
+
+    return 1;
 }
 
-// sync database
-model.sequelize.sync({force: true}).then(
-    // if success
-    ()=>{
-        // start process
-        let server_port = config["server"]["listen_port"];
-        // start (listen) the process
-        console.log("[INFO] Start panel!");
-        console.log(`[INFO] Server listen on ${server_port}`);
-        server.listen(server_port);
-    },
-    // if error
-    (err)=>{
-        console.log("[ERR-SQLERR] Sync Database Data Error!");
-        console.log(err);
+const launch_process = () => {
+    let config = utils.get_config();
+    // start process
+    let server_port = config["server"]["listen_port"];
+    // start (listen) the process
+    console.log("[INFO] Start panel!");
+    console.log(`[INFO] Server listen on ${server_port}`);
+    server.listen(server_port);
+}
+
+const sync_model = () => {
+    // sync database
+    model.__sequelize.sync({force: true}).then(
+        // if success
+        ()=>{
+            launch_process();    
+        },
+        // if error
+        (err)=>{
+            console.log("[ERR-SQLERR] Sync Database Data Error!");
+            console.log(err);
+        }
+    );
+}
+
+let rc = update_config() && check_config();
+
+if(rc === 1){
+    if(utils.get_startup_lock() === true){
+        // launch directly, without sync db model
+        launch_process();
+    }else{
+        sync_model();
     }
-);
+}

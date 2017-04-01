@@ -155,7 +155,7 @@ export default {
                 "pm_port" : this.pm_port
             }
 
-            ajax("POST","/startup/api/submit", v, this.submit_success, this.submit_fail)
+            ajax("POST","/startup/submit_config", v, this.submit_success, this.submit_fail)
         },
         submit_success(msg){
             this.page_index = FINISH;

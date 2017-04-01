@@ -1,6 +1,7 @@
 const error_code = {
     403: "Not authenticated.",
     404: "Not found.",
+    406: "Invalid parameter.",
     500: "Fatal Error."
 };
 
