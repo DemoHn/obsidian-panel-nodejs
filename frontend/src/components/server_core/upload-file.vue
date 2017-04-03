@@ -8,7 +8,7 @@
                 <input type="text" class="form-control input-file-name" readonly v-model="file_name"/>
                 <vue-file-upload
                     ref="vueFileUploader"
-                    url="/super_admin/api/upload_core_file"
+                    url="/super_admin/core/upload_core_file"
                     name="files"
                     label="选择文件"
                     :filters = "filters"

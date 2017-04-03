@@ -63,8 +63,8 @@ const check_config = () => {
     Maybe you can try running this process under root privilege?`);
         return -1;
     }
-    // then mkdir all subdir in data_dir
-    const sub_dirs = ['env', 'files', 'servers', 'sql', 'uploads', 'backups'];
+    // then mkdir all subdirs inside $data_dir
+    const sub_dirs = ['backups', 'cores', 'downloads', 'exes', 'files', 'servers', 'sql', 'uploads'];
     for(let sub_dir in sub_dirs){
         mkdirp.sync(utils.resolve(data_dir, sub_dirs[sub_dir]));
     }
@@ -114,7 +114,7 @@ const launch_process = () => {
 
 const sync_model = () => {
     // sync database
-    model.__sequelize.sync({force: true}).then(
+    model.__sequelize.sync().then(
         // if success
         ()=>{
             launch_process();    

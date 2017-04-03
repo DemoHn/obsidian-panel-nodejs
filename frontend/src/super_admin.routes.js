@@ -26,7 +26,7 @@ const routes = [
         name: 'INFO',
         description: 'Simple and advance table in CoPilot'
       }, {
-        path: 'server_core',
+        path: 'core',
         component: ServerCoreView,
         name: 'Server CORE',
         description: 'Tasks page in the form of a timeline'

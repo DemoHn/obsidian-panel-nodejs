@@ -108,7 +108,7 @@
                 };
 
                 let vue = this;
-                ajax("POST", "/super_admin/api/login", _v, (msg)=>{
+                ajax("POST", "/login", _v, (msg)=>{
                     window.location.href = "/super_admin/info"
                 },(code)=>{
                     console.log(code);

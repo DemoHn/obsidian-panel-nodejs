@@ -2,7 +2,12 @@ const error_code = {
     403: "Not authenticated.",
     404: "Not found.",
     406: "Invalid parameter.",
-    500: "Fatal Error."
+    407: "Invalid URL param",
+    411: "Item not found.",
+    500: "Fatal Error.",
+    502: "Username not found",
+    504: "Password Error.",
+
 };
 
 module.exports = {
@@ -27,5 +32,6 @@ module.exports = {
             info: _info
         };
         return JSON.stringify(rtn); 
-    }
+    },
+    error_code : error_code
 }

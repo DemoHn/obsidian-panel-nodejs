@@ -14,6 +14,7 @@ module.exports = {
     FREE_USER : 2,
     INST_OWNER : 4,
     EVERYONE : 8,
+    // get version from package.json
     get_version : ()=>{
         const package_json_str = fs.readFileSync("package.json", {encoding:"utf8"});
         const jstr = JSON.parse(package_json_str);

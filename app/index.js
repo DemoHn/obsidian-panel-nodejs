@@ -4,6 +4,7 @@ const logger  = require("morgan");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
+const rtn = require("../utils/rtn");
 let app = express();
 
 // template engine
@@ -16,6 +17,35 @@ app.engine("html", require('ejs').renderFile);
 app.use(bodyParser.json());
 // for parsing application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
+// cookie parser
+app.use(cookieParser());
+
+// add rtn.success and rtn.error method
+app.use((req, res, next) => {
+    res.success = (info, code=200)=>{
+        let rtn = {
+            status: "success",
+            code: code,
+            info: info
+        };
+        res.send(JSON.stringify(rtn));
+    }
+
+    res.error = (code, info=null) => {
+        if(info === null){
+            _info = rtn.error_code[code];
+        }else{
+            _info = info;
+        }
+        let rtn = {
+            status: "error",
+            code: code,
+            info: _info
+        };
+        res.send(JSON.stringify(rtn));
+    }
+    next();
+});
 
 // serve static resources
 require("./views")(app);

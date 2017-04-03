@@ -31,7 +31,7 @@
         <ul class="sidebar-menu">
             <br><br>
           <li class="pageLink" :class="{'active' : route == 'info'}" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i><span class="link-text">基本信息</span></router-link></li>
-          <li class="pageLink" :class="{'active' : route == 'server_core'}" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'core'}" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
           <li class="pageLink" :class="{'active' : route == 'java_binary'}" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
           <li class="pageLink" :class="{'active' : route == 'settings'}" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i><span class="link-text">设置</span></router-link></li>
           <br>

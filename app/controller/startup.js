@@ -19,6 +19,8 @@ const create_database = (config, callback) => {
                 callback(true);
             }
         })
+    }else{
+        callback(true);
     }
 };
 module.exports = {
@@ -123,13 +125,11 @@ module.exports = {
 
     init_super_admin: (req, res) => {
         const User = require("../model").User;
-
         const body = req.body;
         const req_data = {
             username: body.username,
             email: body.email,
-            password: body.password,
-            privilege: utils.ROOT_USER
+            password: body.password
         };
 
         // calculate hash
@@ -143,7 +143,8 @@ module.exports = {
         User.create({
             username: req_data.username,
             hash: hash,
-            email: req_data.email
+            email: req_data.email,
+            privilege: utils.ROOT_USER
         }).then(
             // success
             (data)=>{

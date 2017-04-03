@@ -9,7 +9,7 @@ const init_model = () => {
     let config, sequelize;
     // delete old model objects
     for(let item in db){
-        if(item.indexOf("__") !== 0){
+        if(item.indexOf("__") !== 0 && item.indexOf("get") !== 0){
             delete db[item];
         }
     }
@@ -51,4 +51,17 @@ db.__init_model = init_model;
 if(utils.get_startup_lock() === false){
     db.__sequelize = db.__init_model();
 }
+
+// get model safely
+db.get = (item) => {
+    if(utils.get_startup_lock() === true){
+        return null;
+    }else{
+        if(db[item] === undefined){
+            db.__init_model();
+        }
+        return db[item];
+    } 
+}
+
 module.exports = db;

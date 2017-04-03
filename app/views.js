@@ -5,6 +5,7 @@ module.exports = (app)=>{
     const static_dir = utils.resolve(__dirname, "..", "static");
     const version = utils.get_version();
 
+    const login_ctrl = require("./controller/login");
     // 1. serve static directory
     app.use('/static', express.static(static_dir));
 
@@ -49,5 +50,10 @@ module.exports = (app)=>{
             login_flag : login_flag
         });
     });
+
+    // handle login
+    app.post("/login", login_ctrl.log_in);
+
+    app.post("/logout", login_ctrl.log_out);
 }
 

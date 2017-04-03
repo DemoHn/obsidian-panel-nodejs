@@ -220,7 +220,7 @@ export default {
         // fetch data from remote
         aj_load_core_list(){
             let ws = new WebSocket();
-            ws.ajax("GET",'/super_admin/api/get_core_file_info', this.init_core_list, this.on_load_error);
+            ws.ajax("GET",'/super_admin/core/get_core_file_info', this.init_core_list, this.on_load_error);
         },
         // click methods
         edit_serv_core(index){
@@ -248,7 +248,7 @@ export default {
             let _index = this._edit_index;
             let core_file_id = this.core_list[_index]["core_id"];
             let v = this;
-            ws.ajax("POST", "/super_admin/api/edit_core_file_params/"+core_file_id, ajax_data, (msg)=>{
+            ws.ajax("POST", "/super_admin/core/edit_core_file_params/"+core_file_id, ajax_data, (msg)=>{
                 for(let key in v.edit_form)
                     v.core_list[_index][key] = v.edit_form[key];
                 v.showEditModal = false;
@@ -270,7 +270,7 @@ export default {
             let _index = this._delete_index;
             let core_file_id = this.core_list[_index]["core_id"];
             let v = this;
-            ws.ajax("GET", "/super_admin/api/delete_core_file/"+core_file_id, (msg)=>{
+            ws.ajax("GET", "/super_admin/core/delete_core_file/"+core_file_id, (msg)=>{
                 // on success
                 v.showDeleteModal = false;
                 v.core_list.splice(_index, 1);
