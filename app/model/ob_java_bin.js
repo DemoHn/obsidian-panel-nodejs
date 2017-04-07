@@ -12,6 +12,6 @@ module.exports = (seq_obj)=>{
         // install time
         install_time : Seq.DATE
     },{
-        tableName:"ob_java_bin"
+        tableName: "ob_java_bin"
     })
 }

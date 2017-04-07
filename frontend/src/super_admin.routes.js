@@ -16,7 +16,7 @@ const routes = [
         auth: false,
         children: [
       {
-        path: 'java_binary',
+        path: 'java',
         component: JavaBinaryView,
         name: 'Java版本管理',
         description: 'Overview of environment'

@@ -155,7 +155,7 @@ export default {
 
         start_downloading(major, minor, _index){
             let ws = new WebSocket();
-            ws.ajax("GET","/super_admin/api/start_download_java?index="+_index);
+            ws.ajax("GET","/super_admin/java/start_download_java?index="+_index);
         },
         // events
         on_download_start(msg){
@@ -209,7 +209,7 @@ export default {
     mounted(){
         let ws = new WebSocket();
         let v = this;
-        ws.ajax("GET","/super_admin/api/get_java_download_list", (msg)=>{
+        ws.ajax("GET","/super_admin/java/get_java_download_list", (msg)=>{
             v.status = 1;
             this.init_download_list(msg);
         },(code)=>{

@@ -14,6 +14,15 @@ module.exports = {
     FREE_USER : 2,
     INST_OWNER : 4,
     EVERYONE : 8,
+    // random string
+    get_random_string : (blocks) => {
+        let _str = "";
+        const dicts = "ASDFGHJKLiuytrewqOPZXCVBNM1234567890";
+        for(let i=0;i<blocks;i++){
+            _str += dicts[Math.floor(Math.random() * 36)];
+        }
+        return _str;
+    },
     // get version from package.json
     get_version : ()=>{
         const package_json_str = fs.readFileSync("package.json", {encoding:"utf8"});
