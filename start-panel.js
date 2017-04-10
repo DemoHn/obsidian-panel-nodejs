@@ -2,13 +2,19 @@
 const os = require("os");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
+
 const app = require("./app").app;
 const server = require("./app").server;
 const utils = require("./utils");
 const model = require("./app/model");
 
 // check if config.yml exists
-const config_yml = utils.resolve(__dirname, "config.yml");
+
+// According to enclose's manual, if we setup the path like __dirname+"config.yml",
+// enclose will regard the config file as internal asset and include into the bundle by default.
+// Since we want to read config.yml from external filesystem, we use `process.cwd()` to read
+// config.yml dynamically.
+const config_yml = utils.resolve(process.cwd(), "config.yml");
 const config_yml_sample = utils.resolve(__dirname, "config.yml.sample");
 
 const merge_dict = (dict_conf, dict_sample)=>{
@@ -31,9 +37,6 @@ const update_config = () => {
     // update config
     if(!utils.exists(config_yml)){
         utils.write(config_yml, utils.read(config_yml_sample));
-    }else{
-        let obj_conf = utils.get_config();
-        let obj_conf_sample = utils.get_config(config_yml_sample);
     }
 
     return 1;

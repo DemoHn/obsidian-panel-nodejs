@@ -335,7 +335,7 @@ module.exports = {
     add_java_version : (req, res, next) => {
         const JavaBinary = model.get("JavaBinary");
         JavaBinary.create({
-            major_verison: req.body.major,
+            major_version: req.body.major,
             minor_version: req.body.minor,
             bin_directory: req.body.exec_dir
         }).then( (data)=>{
@@ -347,7 +347,7 @@ module.exports = {
             res.error(500);
         });
     },
-    
+
     // @param: query -> index
     start_download_java: (req, res, next) => {
 

@@ -2,11 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 const os   = require("os");
+const md5 = require("blueimp-md5");
 
+const _salt = Buffer.from([0x87, 0x93, 0xfb, 0x00, 0xfa, 0xc2, 0x88, 0xba, 0x24, 0x86, 0x98, 0x27, 0xba, 0xa8, 0xc6]);
 module.exports = {
     types : require("./types"),
     rtn : require("./rtn"),
-    salt : Buffer.from([0x87, 0x93, 0xfb, 0x00, 0xfa, 0xc2, 0x88, 0xba, 0x24, 0x86, 0x98, 0x27, 0xba, 0xa8, 0xc6]),
+    nickname: require("./nickname"),
+    
+    salt : _salt,
 
     // constants
     ULTIMATE : 0,
@@ -14,6 +18,15 @@ module.exports = {
     FREE_USER : 2,
     INST_OWNER : 4,
     EVERYONE : 8,
+
+    // hash
+    calc_hash : (password) => {
+        const concat_buffer = Buffer.concat([Buffer.from(password), _salt]);
+        let buffer_str = concat_buffer.toString("ascii");
+
+        return md5(buffer_str);
+    },
+    
     // random string
     get_random_string : (blocks) => {
         let _str = "";
@@ -25,9 +38,7 @@ module.exports = {
     },
     // get version from package.json
     get_version : ()=>{
-        const package_json_str = fs.readFileSync("package.json", {encoding:"utf8"});
-        const jstr = JSON.parse(package_json_str);
-        return jstr["version"];
+        return require("../package.json")["version"];
     },
     // is debug
     is_debug : ()=>{
@@ -39,7 +50,7 @@ module.exports = {
     },
     // write & read global config of the whole panel
     get_config : (filename)=>{
-        let config_file = path.resolve(__dirname, "..", "config.yml"); 
+        let config_file = path.resolve(process.cwd(), "config.yml"); 
         try{
             if(filename !== undefined){
                 config_file = filename;
@@ -64,7 +75,7 @@ module.exports = {
         }
     },
     dump_config : (conf, filename)=>{
-        let config_file = path.resolve(__dirname, "..", "config.yml");
+        let config_file = path.resolve(process.cwd(), "config.yml");
 
         try{
             if(filename != undefined){
@@ -103,14 +114,14 @@ module.exports = {
     // in old python, this corresponds to the configuarion _RESTART_LOCK
     get_startup_lock: ()=>{
         try{
-            fs.accessSync(path.resolve(__dirname, "..", ".startup.lck"));
+            fs.accessSync(path.resolve(process.cwd(), ".startup.lck"));
         } catch(err){
             return false;
         }
         return true;
     },
     set_startup_lock: (status)=>{
-        let lock_file = path.resolve(__dirname, "..", ".startup.lck");
+        let lock_file = path.resolve(process.cwd(), ".startup.lck");
         if(status){
             // touch lock file
             fs.writeFileSync(lock_file, "");

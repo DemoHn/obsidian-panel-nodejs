@@ -1,7 +1,6 @@
 const express = require("express"),
-
       utils = require("../../../utils"),
-      core_ctrl = require("../../controller/core_java");
+      core_ctrl = require("../../controller/core_java"),
       check_login_ctrl = require("../../controller/login");
 
 let router = express.Router();

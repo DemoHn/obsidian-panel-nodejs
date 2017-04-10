@@ -9,6 +9,7 @@
   "author": "Nigshoxiz",
   "license": "UNLICENSED",
   "dependencies": {
+    "blueimp-md5": "^2.7.0",
     "body-parser": "^1.17.1",
     "cookie-parser": "^1.4.3",
     "ejs": "^2.5.6",

@@ -3,6 +3,7 @@ const error_code = {
     404: "Not found.",
     406: "Invalid parameter.",
     407: "Invalid URL param",
+    408: "Invalid POST parameter",
     411: "Item not found.",
     500: "Fatal Error.",
     502: "Username not found",

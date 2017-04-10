@@ -19,6 +19,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // cookie parser
 app.use(cookieParser());
+// logger
+app.use(logger('dev'));
 
 // add rtn.success and rtn.error method
 app.use((req, res, next) => {

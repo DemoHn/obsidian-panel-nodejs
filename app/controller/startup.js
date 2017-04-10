@@ -1,6 +1,5 @@
 const utils = require("../../utils");
 const mysql = require("mysql");
-const crypto = require('crypto');
 
 const create_database = (config, callback) => {
     if(config["db"]["type"] === "mysql"){
@@ -133,12 +132,14 @@ module.exports = {
         };
 
         // calculate hash
+        /*
         const _hash = crypto.createHash("md5");
         _hash.update(
             Buffer.concat([Buffer.from(req_data.password), utils.salt])
         );
 
-        const hash = _hash.digest("hex");
+        const hash = _hash.digest("hex");*/
+        const hash = utils.calc_hash(req_data.password);
         // insert data
         User.create({
             username: req_data.username,

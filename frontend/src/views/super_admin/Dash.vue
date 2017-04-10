@@ -31,8 +31,8 @@
         <ul class="sidebar-menu">
             <br><br>
           <li class="pageLink" :class="{'active' : route == 'info'}" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i><span class="link-text">基本信息</span></router-link></li>
-          <li class="pageLink" :class="{'active' : route == 'core'}" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
-          <li class="pageLink" :class="{'active' : route == 'java_binary'}" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'core'}" v-on:click="toggleMenu"><router-link to="/super_admin/core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'java_binary'}" v-on:click="toggleMenu"><router-link to="/super_admin/java"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
           <li class="pageLink" :class="{'active' : route == 'settings'}" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i><span class="link-text">设置</span></router-link></li>
           <br>
           <li class="pageLink" v-on:click="toggleMenu"><a href="/server_inst/dashboard"><i class="fa fa-arrow-circle-left"></i><span class="link-text">返回控制台</span></a></li>

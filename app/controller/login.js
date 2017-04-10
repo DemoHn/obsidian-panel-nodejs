@@ -1,4 +1,3 @@
-const crypto = require("crypto");
 const utils = require("../../utils");
 const model = require("../model");
 
@@ -36,6 +35,7 @@ module.exports = {
                         // every registered user could continue all.
                         req._uid = data.uid;
                         req._priv = data.User.privilege;
+                        req._username = data.User.username;
                         next();
                     }
                 },
@@ -74,6 +74,7 @@ module.exports = {
                         // only root user could continue
                         req._uid = data.uid;
                         req._priv = data.User.privilege;
+                        req._username = data.User.username;
                         next();
                     } else {
                         res.redirect("/login");
@@ -87,8 +88,8 @@ module.exports = {
     },
 
     log_in: (req, res, next) => {
-        const User  = require("../model").get("User");
-        const Token = require("../model").get("Token");
+        const User  = model.get("User");
+        const Token = model.get("Token");
 
         // find if user exists
         const query_username = (username, password, remember_me) => {
@@ -128,6 +129,7 @@ module.exports = {
             return new Promise((resolve, reject) => {
                 try {
                     // calculate hash
+                    /*
                     const _hash = crypto.createHash("md5");
 
                     if(password == null){
@@ -136,7 +138,8 @@ module.exports = {
                     _hash.update(
                         Buffer.concat([Buffer.from(password), utils.salt])
                     );
-                    const real_hash = _hash.digest("hex");
+                    const real_hash = _hash.digest("hex");*/
+                    const real_hash = utils.calc_hash(password);
                     if(data.hash === real_hash){
                         resolve({
                             data: data,
