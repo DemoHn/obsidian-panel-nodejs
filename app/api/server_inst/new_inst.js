@@ -1,5 +1,7 @@
 const utils = require("../../../utils");
 const express = require("express");
+const path = require("path");
+const multer = require("multer");
 let check_login_ctrl = require("../../controller/login");
 let inst_ctrl = require("../../controller/inst");
 
@@ -26,7 +28,15 @@ router.get("/prepare_data", inst_ctrl.prepare_data);
 router.get("/assert_input", inst_ctrl.assert_input);
 
 // LOGO
-const upload = multer({dest : upload_dir});
+const upload = multer({
+    dest : upload_dir,
+    fileFilter: function (req, file, cb) {
+        if (path.extname(file.originalname) !== '.png') {
+            return cb(null, false);
+        }
+        cb(null, true);
+    }
+});
 router.post("/upload_logo", upload.single('file'), inst_ctrl.upload_logo);
 
 router.get("/preview_logo/:logo", inst_ctrl.preview_logo);

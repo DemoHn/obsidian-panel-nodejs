@@ -23,7 +23,7 @@
                         ref="vueFileUploader"
                         name="file"
                         label="上传图片"
-                        url="/server_inst/upload_logo"
+                        url="/server_inst/new_inst/upload_logo"
                         :autoUpload = "auto_upload"
                         :filters = "filters"
                         :events = "cbEvents"
@@ -154,7 +154,7 @@
                     if(this.edit_mode){
                         _url = "/server_inst/dashboard/logo_src/" + this.inst_id + "?random=" + new Date().getTime()
                     }else{
-                        _url = "/server_inst/preview_logo/" + name;
+                        _url = "/server_inst/new_inst/preview_logo/" + name;
                     }
                     this.has_img = true;
                     this.preview_target = _url;

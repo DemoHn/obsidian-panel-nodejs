@@ -64,4 +64,10 @@ describe('utils', () => {
         });
     });
     
+    describe('nickname', () => {
+        it("shall return correctly", ()=>{
+            const nickname = utils.nickname.get(0);
+            expect(nickname).to.be.equal("kill-egg");
+        })
+    });
 });

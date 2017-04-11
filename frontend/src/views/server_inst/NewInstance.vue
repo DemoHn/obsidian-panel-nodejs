@@ -379,7 +379,7 @@
                 // assert data by ajax
                 let _assert_data = this.listen_port + "," + this.world_name + "," + this.ftp_account_name;
                 let v= this;
-                ws.ajax("GET", "/server_inst/api/new_inst/assert_input?type=_all&data="+_assert_data, (msg)=>{
+                ws.ajax("GET", "/server_inst/new_inst/assert_input?type=_all&data="+_assert_data, (msg)=>{
                     v.world_name_assert = msg["inst_name"];
                     v.port_assert = msg["port"];
                     v.ftp_account_assert = msg["ftp_account"];
@@ -423,7 +423,7 @@
                     "ftp_password" : that.ftp_password
                 }
 
-                ws.ajax("POST", "/server_inst/api/new_inst", creat_data, (msg)=>{
+                ws.ajax("POST", "/server_inst/new_inst/create_instance", creat_data, (msg)=>{
                     let inst_id = msg;
                     location.href = "/server_inst/dashboard#" + inst_id;
                 })
@@ -432,7 +432,7 @@
             // ajax function , prefix wih "aj"
             aj_get_lists(){
                 let ws = new WebSocket();
-                ws.ajax("GET","/server_inst/api/new_inst", (msg)=>{
+                ws.ajax("GET","/server_inst/new_inst/prepare_data", (msg)=>{
                     this.server_cores_list = msg.server_cores;
                     this.java_versions_list = msg.java_versions;
                     this.ftp_account_name = msg.FTP_account_name;
@@ -450,7 +450,7 @@
             },
             aj_assert(type, data, success_callback){
                 let ws = new WebSocket();
-                ws.ajax("GET", "/server_inst/api/new_inst/assert_input?type="+type+"&"+"data="+data, (msg)=>{
+                ws.ajax("GET", "/server_inst/new_inst/assert_input?type="+type+"&"+"data="+data, (msg)=>{
                     if(typeof(success_callback) == "function"){
                         success_callback(msg);
                     }

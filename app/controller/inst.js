@@ -1,7 +1,8 @@
 const os = require("os");
-const fs = require("fs");
+const fs = require("fs-extra");
 const cp = require("child_process");
 const mkdirp = require("mkdirp");
+
 
 const Parser = require("../proc/parser");
 
@@ -54,13 +55,12 @@ module.exports = {
                 }else{
                     curr_id = count + 1;
                 }
-
-                dir_name = `${req._username}-${utils.nickname(count)}`;
+                dir_name = `${req._username}-${utils.nickname.get(count)}`;
                 // mkdir -p <data_dir>/servers/<username>-<nickname>
                 mkdirp.sync(utils.resolve(servers_dir, dir_name));
 
                 // and set return value... by chaining res object
-                res._inst_dir = utils.resolve(servers_dir, dirname);
+                res._inst_dir = utils.resolve(servers_dir, dir_name);
                 next();
             },
             (err) => {
@@ -78,10 +78,10 @@ module.exports = {
         if(inst_name == null || inst_name == ""){
             res.error(408, "inst name is undefined!");
         }else{
-            ServerInstance.findOne({
+            ServerInstance.findOne({where: {
                 inst_name: inst_name,
                 owner_id: req._uid
-            }).then(
+            }}).then(
                 (data) => {
                     if(data != null){
                         // that means there's identical inst name
@@ -112,9 +112,9 @@ module.exports = {
 
             // check if the port number has been registered by other
             // instances.
-            ServerInstance.findOne({
+            ServerInstance.findOne({where: {
                 listening_port: listening_port
-            }).then(
+            }}).then(
                 (data) => {
                     if(data != null){
                         res.error(600, "port number has been registered!");
@@ -173,9 +173,9 @@ module.exports = {
         if(!utils.types.likeNumber(java_bin_id)){
             res.error(406, "Invalid java_bin param!");
         }else{
-            JavaBinary.findOne({
+            JavaBinary.findOne({where: {
                 id: parseInt(java_bin_id)
-            }).then(
+            }}).then(
                 (data)=>{
                     if(data != null){
                         res._java_bin_id = parseInt(java_bin_id);
@@ -199,9 +199,9 @@ module.exports = {
         if(!utils.types.likeNumber(server_core_id)){
             res.error(406, "Invalid core_id param!");
         }else{
-            ServerCore.findOne({
+            ServerCore.findOne({where: {
                 core_id: parseInt(server_core_id)
-            }).then(
+            }}).then(
                 (data)=>{
                     if(data != null){
                         res._server_core_id = parseInt(server_core_id);
@@ -230,7 +230,7 @@ module.exports = {
                   new_logo = utils.resolve(res._inst_dir, icon_png);
                 
             if(utils.exists(logo_file)){                
-                fs.renameSync(logo_file, new_logo);
+                fs.moveSync(logo_file, new_logo, {overwrite: true});
             }
             next();
         }
@@ -250,9 +250,9 @@ module.exports = {
             FTP_default_password = true;
         }
 
-        User.findOne({
+        User.findOne({where:{
             id: req._uid
-        }).then(
+        }}).then(
             (user)=>{
                 if(FTP_default_password){
                     _ftp_hash = user.hash;
@@ -260,9 +260,9 @@ module.exports = {
                     _ftp_hash = utils.calc_hash(FTP_password);
                 }
                 // check if account has already exists
-                FTPAccount.findOne({
+                FTPAccount.findOne({where:{
                     username: FTP_account
-                }).then(
+                }}).then(
                     (data)=>{
                         if(data != null){
                             // already exists
@@ -327,9 +327,15 @@ module.exports = {
             parser.conf_items = res._inst_properties;
             parser.conf_items["server-port"] = res._listening_port;
             parser.conf_items["max-players"] = res._max_user;
+
+            let motd = "";
+            if(req.body.motd != null){
+                motd = req.body.motd;
+            }
+            parser.conf_items["motd"] = motd;
+            
             // export data
             parser.dumps();
-            console.log(parser.conf_items);
         };
 
         _write_server_properties();
@@ -339,7 +345,7 @@ module.exports = {
             inst_name : res._inst_name,
             core_file_id : res._server_core_id,
             java_bin_id : res._java_bin_id,
-            listening_port: self._listening_port,
+            listening_port: res._listening_port,
             max_RAM: res._max_RAM,
             max_user: res._max_user,
             inst_dir: res._inst_dir
@@ -349,7 +355,7 @@ module.exports = {
                 // ftp account
                 FTPAccount.update({inst_id: new_inst_id}, {where: {username: res._ftp_account, inst_id: 0}}).then(
                     (data) => {
-                        res.success(200);
+                        res.success(new_inst_id);
                     },
                     (err) => {
                         console.error(err);
@@ -372,6 +378,7 @@ module.exports = {
 
     },
 
+    // instance control
     start_instance(req, res, next){
 
     },
@@ -386,5 +393,264 @@ module.exports = {
 
     restart_instance(req, res, next){
 
+    },
+
+    // miscellaneous
+    // new_inst
+    
+    // prepare some necessary info for creating a new instance
+    // e.g.: Available server_cores, Java Executables
+    prepare_data(req, res, next){
+        const JavaBinary = model.get("JavaBinary");
+        const ServerCore = model.get("ServerCore");
+        const FTPAccount = model.get("FTPAccount");
+
+        let java_versions = [];
+        let server_cores  = [];
+
+        // empty function ,for reject callback
+        const _empty_func = ()=>{};
+
+        const _get_java_versions = ()=>{
+            return new Promise((resolve, reject) => {
+                JavaBinary.findAll().then(
+                    (datas) => {
+                        for(let i = 0;i<datas.length;i++){
+                            let item = datas[i];
+                            let _model = {
+                                name: `1.${item.major_version}.0_${item.minor_version}`,
+                                index: item.id,
+                                selected: ""
+                            }
+                            java_versions.push(_model);
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        console.log(err);
+                        res.error(500);
+                        reject();
+                    }
+                )
+            });
+        };
+
+        const _get_server_cores = () => {
+            return new Promise((resolve, reject) => {
+                ServerCore.findAll().then(
+                    (datas) => {
+                        for(let i = 0;i<datas.length;i++){
+                            let item = datas[i];
+                            let _name = "";
+
+                            if(item.core_version != null && item.core_version != ""){
+                                _name = `${item.core_type}-${item.core_version}-${item.minecraft_version}`;
+                            }else{
+                                _name = `${item.core_type}-${item.minecraft_version}`;
+                            }
+                            let _model = {
+                                name: _name,
+                                index: item.core_id                                
+                            }
+                            server_cores.push(_model);
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        console.log(err);
+                        res.error(500);
+                        reject();
+                    }
+                )
+            });
+        };
+
+        let ftp_user_name = "default_ftp_user_name";
+        const _select_ftp_account = () => {
+            return new Promise((resolve, reject) => {
+                FTPAccount.findAll().then(
+                    (data) => {
+                        let usernames = [];
+                        for(let i=0;i<data.length;i++){
+                            usernames.push(data[i].username);
+                        }
+                        let _safe_index = 0;
+                        // generate an unique ftp user name
+                        while(_safe_index < 30){
+                            _safe_index += 1;
+                            ftp_user_name = `${req._username}_${utils.get_random_string(3)}`;
+                            if(ftp_user_name.indexOf(usernames) < 0){
+                                break;
+                            }
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        console.error(err);
+                        res.error(500);
+                        reject();
+                    }
+                )
+            });
+        }
+
+        _get_java_versions().then(_get_server_cores, _empty_func)
+            .then(_select_ftp_account, _empty_func).then(
+                () => {
+                    let rtn_model = {
+                        java_versions: java_versions,
+                        server_cores: server_cores,
+                        FTP_account_name: ftp_user_name
+                    }
+
+                    res.success(rtn_model);
+                },
+                _empty_func
+            );
+    },
+
+    assert_input(req, res, next){
+        const type = req.query.type,
+              data = req.query.data;
+        
+        const ServerInstance = model.get("ServerInstance");
+        const FTPAccount = model.get("FTPAccount");
+
+        // assert items
+        const _assert_port = (data, callback) => {
+            if(!utils.types.likeNumber(data)){
+                callback(false);
+            }else{
+                let d = parseInt(data);
+                if(d < 1 || d > 65535){
+                    callback(false);
+                }else{
+                    ServerInstance.findOne({where: {listening_port: d}}).then(
+                        (dat) => {
+                            if(dat != null){
+                                callback(false);
+                            }else{
+                                callback(true);
+                            }
+                        },
+                        (err) => {
+                            console.error(err);
+                            callbak(null);
+                        }
+                    )
+                }
+            }
+        };
+
+        const _assert_inst_name = (data, callback) => {
+            if(data == null || data == ""){
+                callback(false);
+            }else{
+                ServerInstance.findOne({where:{inst_name: data, owner_id: req._uid}}).then(
+                    (dat) => {
+                        if(dat != null){
+                            callback(false);
+                        }else{
+                            callback(true);                            
+                        }
+                    },
+                    (err) => {
+                        console.error(err);
+                        callback(null);                        
+                    }
+                );
+            }
+        };
+
+        const _assert_ftp_account = (data, callback) => {
+            if(data == null || data == ""){
+                callback(false);
+            }else{
+                FTPAccount.findOne({where:{username: data}}).then(
+                    (dat) => {
+                        console.log(dat);
+                        if(dat != null){
+                            callback(false);
+                        }else{
+                            callback(true);
+                        }
+                    },
+                    (err) => {
+                        console.error(err);
+                        callback(null);
+                    }
+                );
+            }
+        };
+        if(type === "port"){
+            _assert_port(data, (result) => {
+                if(result == null){
+                    res.error(500);
+                }else{
+                    res.success(result);
+                }                
+            });
+        }else if(type === "inst_name"){
+            _assert_inst_name(data, (result) => {
+                if(result == null){
+                    res.error(500);
+                }else{
+                    res.success(result);
+                }                
+            });
+        }else if(type === "ftp_account"){
+            _assert_ftp_account(data, (result) => {
+                if(result == null){
+                    res.error(500);
+                }else{
+                    res.success(result);
+                }                
+            });
+        }else if(type === "_all"){
+            let _model = {
+                "port" : false,
+                "inst_name" : false,
+                "ftp_account" : false
+            }
+            let d = data.split(",");
+
+            _assert_port(d[0], (result) => {
+                _model["port"] = result;
+                _assert_inst_name(d[1], (result) => {
+                    _model["inst_name"] = result;
+                    _assert_ftp_account(d[2], (result) => {
+                        _model["ftp_account"] = result;
+
+                        res.success(_model);
+                    });
+                });
+            });
+        }else{
+            res.error(406, "invalid `type`!");
+        }
+    },
+
+    upload_logo(req, res, next){
+        const file = req.file;
+
+        if(file == undefined){
+            res.error(406);
+        }else{
+            res.success(file.filename);
+        }
+    },
+
+    // @param : logo
+    preview_logo(req, res, next){
+        const logo_url = req.params.logo,
+              data_dir = utils.get_config()["global"]["data_dir"];
+
+        const logo_file = utils.resolve(data_dir, "uploads", logo_url);
+
+        if(utils.exists(logo_file)){
+            res.sendFile(logo_file);
+        }else{
+            res.status(404).end();
+        }
     }
 }

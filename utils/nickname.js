@@ -19,20 +19,27 @@ const verb_dict = [
     "roll", "pull", "push", "kiss", "wait", "tear"
 ]
 
-module.exports = (num, sep = "-") => {
-    let n = parseInt(num);
-    let m = n;
-    let str = "";
-    while(n > 0){
-        str += `${vert_dict[n % 15]}${sep}${noun_dict[n % 18]}`;
-        n = Math.floor(n / 90);
+module.exports = {
+    get(num, sep = "-"){
+        let n = parseInt(num);
+        let m = n;
+        let str = "";
 
-        if(m >= 90){
-            str += sep;
+        if(n == 0){
+            return `${verb_dict[0]}${sep}${noun_dict[0]}`;
+        }
+        while(n > 0){
+            str += `${verb_dict[n % 15]}${sep}${noun_dict[n % 18]}`;
+            n = Math.floor(n / 90);
+
+            if(m >= 90){
+                str += sep;
+            }
+
+            m = m - n * 90;
         }
 
-        m = m - n * 90;
+        return str;
     }
-
-    return str;
 }
+    
