@@ -62,7 +62,7 @@ class JavaBinaryPool {
                 "link": this.tasks[item]["link"],
                 "status": this.tasks[item]["status"],
                 "progress": this.tasks[item]["progress"]
-            }
+            };
         }
 
         return cpy_tasks;
@@ -71,10 +71,10 @@ class JavaBinaryPool {
     has_working_link(link){
         for(let item in this.tasks){
             if(this.tasks[item]['link'] == link && this.tasks[item]['status'] in (_utils.DOWNLOADING, _utils.EXTRACTING)){
-                return true
+                return true;
             }
         }
-        return false
+        return false;
     }
 } 
 
@@ -84,19 +84,93 @@ const _query_core_file_id = (res, core_file_id) => {
         ServerCore.findOne({where: {core_id : core_file_id}}).then( 
             (data)=>{
                 if(data == null)
-                    res.error(411)
+                    res.error(411);
                 else
                     resolve(data);
             },
             (err)=>{
                 reject(res, 500);
             }
-        );  
+        );
     });
 };
 
 const _reject_end = (res, err_code) => {
     res.error(err_code);
+};
+
+const _install_java_binary = (major_version, minor_version, res, hash, java_binary_pool, __dest) => {
+    const JavaBinary = model.get("JavaBinary");
+
+    // version name (XuYY format)
+    // e.g. : 8u112
+    const version = `${major_version}u${minor_version}`;
+    
+    if(os.platform() === "linux"){ // linux - to extract
+        const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes", version);
+        // start extracting file
+        const unzip_cmd_args = `--method=unzip --type=tar --target=${__dest} --dest=${__bin_dir}`;
+
+        const unzip_module = utils.resolve(
+            __dirname,
+            "../../tools/unzip"
+        );
+
+        let proc = cp.fork(unzip_module, unzip_cmd_args.split(" "));
+        // send msg to client
+        res.io.emit("message", {hash: hash, event: "_extract_start",result: true});
+        java_binary_pool.update(hash, _utils.EXTRACTING, null);
+
+        proc.on('exit', (result) => {
+            if(result === 0){
+                //extract success
+                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
+
+                JavaBinary.create({
+                    "major_version" : major_version,
+                    "minor_version" : minor_version,
+                    "bin_directory" : utils.resolve(__bin_dir, `jre1.${major_version}.0_${minor_version}`, "bin", "java"),
+                    "install_time" : new Date()
+                });
+                // we suppose this record would insert successfully.
+            }else{
+                //extract fail
+                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
+                java_binary_pool.update(hash, _utils.EXTRACT_FAIL, null);
+            }
+        });
+
+    }else if(/^win/.test(os.platform()) === true){ // windows - run installer
+        const installer_args = `INSTALL_SLIENT=Enable INSTALLDIR=${__bin_dir} STATIC=1 REBOOT=Disable AUTO_UPDATE=Disable`;
+
+        // for windows, if you want to execute a exe file
+        // file extension name shall exists
+        // thus, to execute it, a tricky way is to rename the
+        // file and add ".exe"
+        let __dest_rename = __dest + ".exe";
+        fs.renameSync(__dest, __dest_rename);
+
+        let proc = cp.exec(`${__dest_rename} ${installer_args}`);
+        proc.on('exit', (result) => {
+            if(result == 0){
+                //extract success
+                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
+
+                JavaBinary.create({
+                    "major_version" : major_version,
+                    "minor_version" : minor_version,
+                    "bin_directory" : utils.resolve(__bin_dir, `jre1.${major_version}.0_${minor_version}`, "bin", "java"),
+                    "install_time" : new Date()
+                });
+                // rename back to original file
+                fs.renameSync(__dest_rename, __dest);
+            }else{
+                //extract fail
+                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
+                java_binary_pool.update(hash, _utils.EXTRACT_FAIL, null);
+            }
+        });
+    }
 };
 
 // java download list
@@ -196,7 +270,7 @@ module.exports = {
         const description = req.body.description;
         const core_type = req.body.core_type;
         const file_name = req.body.file_name;
-        
+
         // as param
         let core_file_id;
         try {
@@ -267,7 +341,7 @@ module.exports = {
         const uid = req._uid;
         const data_dir = utils.get_config()["global"]["data_dir"];
         const upload_dir = utils.resolve(data_dir, "cores");
-        
+
         const ServerCore = model.get("ServerCore");
 
         // rename file (prevent name confliction)
@@ -441,8 +515,8 @@ module.exports = {
                 let event = data.event;
                 // send websocket data
                 res.io.emit("message", data);
-                
-                // handle events 
+
+                // handle events
                 if(event === "_download_start"){
                     java_binary_pool.add(data.hash, data.result);
                 }else if(event === "_get_progress"){
@@ -458,36 +532,6 @@ module.exports = {
                 }else if(event === "_download_finish"){
                     if(data.result === true){
 
-                        const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes");
-                        // start extracting file
-                        const unzip_cmd_args = `--method=unzip --type=tar --target=${__dest} --dest=${__bin_dir}`;
-
-                        const unzip_module = utils.resolve(
-                            __dirname,
-                            "../../tools/unzip"
-                        );
-
-                        let proc = cp.fork(unzip_module, unzip_cmd_args.split(" "));
-                        // send msg to client
-                        res.io.emit("message", {hash: data.hash, event: "_extract_start",result: true});
-                        java_binary_pool.update(data.hash, _utils.EXTRACTING, null);
-
-                        proc.on('exit', (result) => {
-                            if(result === 0){
-                                //extract success
-                                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
-                                // TODO Add JavaBinary data column
-                                /*JavaBinary.create({
-                                    "major_version" : ,
-                                    "minor_version" : "",
-                                    "bin_directory" : __bin_dir
-
-                                });*/
-                            }else{
-                                //extract fail
-                                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
-                            }
-                        })
                     }else{
                         java_binary_pool.update(data.hash, _utils.FAIL, null);
                     }

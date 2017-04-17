@@ -7,7 +7,7 @@ module.exports = (seq_obj)=>{
         major_version : Seq.STRING(10),
         // minor version. e.g. : '1.8.10_92'. '1.8.10' is major and '92' is minor
         minor_version : Seq.STRING(10),
-        // execute result
+        // executable dir
         bin_directory : Seq.TEXT,
         // install time
         install_time : Seq.DATE

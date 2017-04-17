@@ -108,7 +108,7 @@ module.exports = {
     },
     //path route
     resolve: (root_dir, ...args)=>{
-        return path.resolve(root_dir, ...args);
+        return path.normalize(path.resolve(root_dir, ...args));
     },
     // startup lock
     // in old python, this corresponds to the configuarion _RESTART_LOCK
@@ -127,8 +127,8 @@ module.exports = {
             fs.writeFileSync(lock_file, "");
         }else{
             try {
-                fs.unlinkSync(lock_file);            
-            } catch (error) {   
+                fs.unlinkSync(lock_file);
+            } catch (error) {
             }
         }
     }
