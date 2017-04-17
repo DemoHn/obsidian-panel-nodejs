@@ -531,7 +531,11 @@ module.exports = {
                     java_binary_pool.update(data.hash, _utils.DOWNLOADING, _prog);
                 }else if(event === "_download_finish"){
                     if(data.result === true){
-
+                        _install_java_binary(
+                            list[index]["major"], list[index]["minor"],
+                            res, data.hash, java_binary_pool, __dest
+                        );
+                        
                     }else{
                         java_binary_pool.update(data.hash, _utils.FAIL, null);
                     }
