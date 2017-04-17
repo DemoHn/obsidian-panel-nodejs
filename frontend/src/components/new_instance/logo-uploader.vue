@@ -34,7 +34,7 @@
                         ref="vueFileUploader"
                         name="file"
                         label="上传图片"
-                        :url="'/server_inst/edit_inst/' + inst_id + '/upload_logo'"
+                        :url="'/server_inst/edit_inst/upload_logo/' + this.inst_id"
                         :autoUpload = "auto_upload"
                         :filters = "filters"
                         :events = "cbEvents"
@@ -120,7 +120,7 @@
             deleteImage(){
                 let v = this;
                 if(this.edit_mode){
-                    ws.ajax("GET","/server_inst/edit_inst/" + this.inst_id + "/delete_logo", (msg)=>{
+                    ws.ajax("GET","/server_inst/edit_inst/delete_logo/" + this.inst_id, (msg)=>{
                         v.has_img = false;
                         v.load_status = NOT_LOAD;
                         v.preview_target = "";
@@ -134,7 +134,7 @@
 
             _detect_image(){
                 let v = this;
-                ws.ajax("GET", "/server_inst/edit_inst/" + this.inst_id + "/has_logo" , (msg)=>{
+                ws.ajax("GET", "/server_inst/edit_inst/has_logo/" + this.inst_id , (msg)=>{
                     if(msg){
                         v.has_img = true;
                         v.load_status = UPLOAD_SUCCESS;

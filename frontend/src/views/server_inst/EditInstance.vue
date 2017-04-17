@@ -378,7 +378,7 @@ export default {
             };
 
             this["s_" + item ] = 0; //loading state 
-            ws.ajax("POST", "/server_inst/edit_inst/" + this.inst_id + "/edit_config", payload, (msg)=>{
+            ws.ajax("POST", "/server_inst/edit_inst/edit_config/" + this.inst_id, payload, (msg)=>{
                 this["s_" + item ] = 2; //success
             },(code)=>{
                 this["s_" + item ] = 1; //fail
@@ -394,7 +394,7 @@ export default {
             window.location.href = "/server_inst/dashboard#" + this.inst_id
         },
         aj_get_init_data(callback){
-            ws.ajax("GET", "/server_inst/edit_inst/" + this.inst_id + "/init_edit_data", (msg)=>{
+            ws.ajax("GET", "/server_inst/edit_inst/init_edit_data/" + this.inst_id, (msg)=>{
                 if(typeof(callback) === "function"){
                     callback(msg);
                 }

@@ -87,6 +87,62 @@ module.exports = {
         }
     },
 
+    // Check if User has permission to do operations on this inst_id.
+    
+    // get inst_id automatically from serveral sources:
+    // 1. req.params.inst_id
+    // 2. req.query.inst_id
+    // [TODO] 3. req.params.inst_nickname -> [translate] to inst_id 
+    // [TODO] 4. req.query.inst_nickname -> [translate] to inst_id
+
+    // NOTICE this opeation shall be called after `check_login` (check_super_admin)
+    // since it requires req._uid
+
+    check_inst_id: (req, res, next) => {
+        if(req._uid == null){
+            res.error(403);
+        }
+        
+        // get inst id
+        let _inst_id = null;
+        if(req.params.inst_id == null){
+            if(req.query.inst_id == null){
+                res.error(403);
+            }else{
+                _inst_id = req.query.inst_id;
+            }
+        }else{
+            _inst_id = req.params.inst_id;
+        }
+
+        if(utils.types.likeNumber(_inst_id)){
+            _inst_id = parseInt(_inst_id)
+        }else{
+            res.error(403);
+        }
+
+        const ServerInstance = model.get("ServerInstance");
+        ServerInstance.findOne({
+            where: {
+                inst_id : _inst_id,
+                owner_id: req._uid
+            }
+        }).then(
+            (data) => {
+                if(data == null){
+                    res.error(403);
+                }else{
+                    req._inst_id = _inst_id;
+                    next();
+                }
+            },
+            (err) => {
+                console.log(err);
+                res.error(500);
+            }
+        )
+    },
+
     log_in: (req, res, next) => {
         const User  = model.get("User");
         const Token = model.get("Token");

@@ -5,6 +5,7 @@ const path = require("path");
 
 let check_login_ctrl = require("../../controller/login");
 let inst_ctrl = require("../../controller/inst");
+let dashboard_ctrl = require("../../controller/dashboard");
 
 let router = express.Router();
 
@@ -44,5 +45,16 @@ router.get("/", (req, res) => {
     );
 });
 
+router.get("/get_inst_list", dashboard_ctrl.get_inst_list);
+
+router.get("/logo_src/:inst_id",
+    check_login_ctrl.check_inst_id,
+    dashboard_ctrl.server_logo_source);
+
+router.get("/get_my_ip", dashboard_ctrl.get_my_ip);
+
+router.get("/get_miscellaneous_info/:inst_id", 
+    check_login_ctrl.check_inst_id,
+    dashboard_ctrl.get_miscellaneous_info);
+
 module.exports = router;
-//router.get("/prepare_data", inst_ctrl.prepare_data);

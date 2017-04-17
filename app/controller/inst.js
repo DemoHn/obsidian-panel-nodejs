@@ -369,7 +369,148 @@ module.exports = {
             }
         );
     },
+
     /*edit instance and its properites*/
+    prepare_edit_data(req, res, next){
+        const FTPAccount = model.get("FTPAccount"),
+              ServerInstance = model.get("ServerInstance"),
+              ServerCore = model.get("ServerCore"),
+              JavaBinary = model.get("JavaBinary");
+
+        let _model = {
+            // general
+            "number_players" : null,
+            "world_name" : "",
+            "number_RAM" : null,
+            "listen_port" : null,
+
+            // core & java version
+            "server_cores_list" : [],
+            "java_versions_list" : [],
+
+            "core_file_id" : null,
+            "java_bin_id" : null,
+            // server properties
+            "server_properties" : {},
+
+            // LOGO & MOTD
+            // Notice: MOTD is contained in server_properties
+            // as for LOGO, there's another API fetching its info
+
+            // FTP account
+            "ftp_account_name" : null,
+            "default_ftp_password" : null
+        };
+
+        // handle db error
+        const _database_error = (err) => {
+            console.log(err);
+            res.error(500);
+        }
+
+        // 1. read general data from ServerInstance
+        const _find_general_data = () => {
+            return new Promise((resolve, reject) => {
+                ServerInstance.findOne({where: {inst_id : req._inst_id}}).then(
+                    (data) => {
+                        _model.number_players = data.max_user;
+                        _model.number_RAM = data.max_RAM / 1024;
+                        _model.world_name = data.inst_name;
+                        _model.listen_port = data.listening_port;
+
+                        // parse server propertiers
+                        let file_server_properties = utils.resolve(data.inst_dir, "server.properties");
+
+                        if(utils.exists(file_server_properties)){
+                            let parser = new Parser(file_server_properties);
+                            _model.server_properties = parser.loads();
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        reject(err);
+                    }
+                )
+            });
+        };
+        
+        // 2. get core file list
+        const _find_core_file_list = () => {
+            return new Promise((resolve, reject) => {
+                ServerCore.findAll().then(
+                    (data) => {
+                        for(let _i=0;_i<data.length;_i++){
+                            let item = data[_i];
+                            let _name = "";
+
+                            if(item.core_version != null && item.core_version != ""){
+                                _name = `${item.core_type}-${item.core_version}-${item.minecraft_version}`;
+                            }else{
+                                _name = `${item.core_type}-${item.minecraft_version}`;
+                            }
+
+                            let __model = {
+                                "name": _name,
+                                "index": item.core_id
+                            }
+
+                            _model.server_cores_list.push(__model);
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        reject(err);
+                    }
+                )
+            });
+        };
+        // 3. get java binary list
+        const _find_java_binary_list = () => {
+            return new Promise((resolve, reject) => {
+                JavaBinary.findAll().then(
+                    (data) => {
+                        for(let _i=0;_i<data.length;_i++){
+                            let item = data[_i];
+                            let __model = {
+                                "name": `1.${item.major_version}.0_${item.minor_version}`,
+                                "index": item.core_id
+                            }
+                            _model.java_versions_list.push(__model);
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        reject(err);
+                    }
+                )
+            });
+        };
+        // 4. read FTP info
+        const _read_FTP_info = () => {
+            return new Promise((resolve, reject) => {
+                FTPAccount.findOne({where: {inst_id : req._inst_id}}).then(
+                    (data) => {
+                        _model.ftp_account_name = data.username;
+                        _model.default_ftp_password = data.default_password;
+                        resolve();
+                    },
+                    (err) => {
+                        reject(err);
+                    }
+                );
+            });
+        };
+
+        _find_general_data()
+            .then(_find_core_file_list, _database_error)
+            .then(_find_java_binary_list, _database_error)
+            .then(_read_FTP_info, _database_error).then(
+                () => {
+                    res.success(_model);
+                }, _database_error
+            );
+    },
+
     edit_instance(req, res, next){
 
     },

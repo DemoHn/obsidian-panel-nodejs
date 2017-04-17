@@ -4,7 +4,7 @@ module.exports = (app)=>{
     // server_inst
     app.use("/server_inst/new_inst", require("./server_inst/new_inst"));
     app.use("/server_inst/dashboard", require("./server_inst/dashboard"));
-    
+    app.use("/server_inst/edit_inst", require("./server_inst/edit_inst"));
     // super_admin
     app.use("/super_admin/info", require("./super_admin/info"));
     app.use("/super_admin/core", require("./super_admin/server_core"));

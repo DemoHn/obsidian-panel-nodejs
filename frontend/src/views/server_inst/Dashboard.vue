@@ -203,13 +203,13 @@ export default {
             let ws = new WebSocket();
 
             if(command == "start"){
-                ws.ajax("GET", "/server_inst/api/start_instance/"+this.inst_id, (msg)=>{});
+                ws.ajax("GET", "/server_inst/dashboard/start_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "stop"){
-                ws.ajax("GET", "/server_inst/api/stop_instance/"+this.inst_id, (msg)=>{});
+                ws.ajax("GET", "/server_inst/dashboard/stop_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "restart"){
-                ws.ajax("GET", "/server_inst/api/restart_instance/"+this.inst_id, (msg)=>{});
+                ws.ajax("GET", "/server_inst/dashboard/restart_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "terminate"){
-                ws.ajax("GET", "/server_inst/api/terminate_instance/"+this.inst_id, (msg)=>{});
+                ws.ajax("GET", "/server_inst/dashboard/terminate_instance/"+this.inst_id, (msg)=>{});
             }
         },
 
@@ -217,7 +217,7 @@ export default {
             let ws = new WebSocket();
             let Console = this.$refs.ConsoleF;
             if(Number.isInteger(this.inst_id)){
-                ws.ajax("GET","/server_inst/api/send_command/"+this.inst_id + "?" + "command=" + command);
+                ws.ajax("GET","/server_inst/dashboard/send_command/"+this.inst_id + "?" + "command=" + command);
             }
         },
 
@@ -274,7 +274,7 @@ export default {
             let ws = new WebSocket();
             let Console = this.$refs.ConsoleF;
             if(Number.isInteger(this.inst_id)){
-                ws.ajax("GET", "/server_inst/api/get_instance_log/"+this.inst_id, (msg)=>{
+                ws.ajax("GET", "/server_inst/dashboard/get_instance_log/"+this.inst_id, (msg)=>{
                     let log_obj = msg.val;
                     let log = log_obj["log"]
                     if(log != null){
@@ -293,7 +293,7 @@ export default {
                 let props = {
                     inst_id : this.inst_id
                 }
-                ws.ajax("GET", "/server_inst/api/get_instance_status/"+this.inst_id, (msg)=>{
+                ws.ajax("GET", "/server_inst/dashboard/get_instance_status/"+this.inst_id, (msg)=>{
                     Status.init_status_list(msg.val);
                     Button.init(msg.val.status);
                 });
@@ -302,7 +302,7 @@ export default {
         aj_get_list(){
             let Select = this.$refs.SelectF;
             let ws = new WebSocket();
-            ws.ajax("GET","/server_inst/api/get_inst_list", (msg)=>{
+            ws.ajax("GET","/server_inst/dashboard/get_inst_list", (msg)=>{
                 Select.init_inst_list(msg);
 
                 if(this.inst_id == null)
@@ -323,7 +323,7 @@ export default {
             let ws = new WebSocket();
             let inst_id = this.inst_id;
             let v = this;
-            ws.ajax("GET","/server_inst/api/get_miscellaneous_info/"+inst_id, (msg)=>{
+            ws.ajax("GET","/server_inst/dashboard/get_miscellaneous_info/"+inst_id, (msg)=>{
                 for(let key in msg){
                     if(key == "image_source"){
                         if(msg[key] !== ""){
@@ -341,7 +341,7 @@ export default {
         },
         aj_get_ip_address(){
             let ws = new WebSocket();
-            ws.ajax("GET","/server_inst/api/get_my_ip", (msg)=>{
+            ws.ajax("GET","/server_inst/dashboard/get_my_ip", (msg)=>{
                 this.ip_addr = msg;
             },(msg)=>{
                 // on error

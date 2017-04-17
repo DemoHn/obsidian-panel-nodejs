@@ -4,7 +4,7 @@ const logger  = require("morgan");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
-const rtn = require("../utils/rtn");
+const _rtn = require("../utils/rtn");
 let app = express();
 
 let server = require("http").Server(app);
@@ -39,7 +39,7 @@ app.use((req, res, next) => {
 
     res.error = (code, info=null) => {
         if(info === null){
-            _info = rtn.error_code[code];
+            _info = _rtn.error_code[code];
         }else{
             _info = info;
         }
@@ -66,5 +66,6 @@ require("./api")(app);
 
 module.exports = {
     app: app,
-    server: server
+    server: server,
+    io: io
 }
