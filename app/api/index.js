@@ -3,6 +3,7 @@ module.exports = (app)=>{
     app.use("/startup", require("./startup"));
     // server_inst
     app.use("/server_inst/new_inst", require("./server_inst/new_inst"));
+    app.use("/server_inst/dashboard", require("./server_inst/dashboard"));
     
     // super_admin
     app.use("/super_admin/info", require("./super_admin/info"));

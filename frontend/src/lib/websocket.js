@@ -8,6 +8,7 @@ const MAX_RETRY = 10;
 // this is a hackable way to make a global
 //window.WS_INSTANCE = null;
 let instance = null;
+let io = require("socket.io-client");
 
 class WebSocket {
     constructor(){
@@ -43,51 +44,32 @@ class WebSocket {
     }
 
     _init(){
-        if(window.WebSocket != undefined){
-            this.socket = new window.WebSocket("ws://" + window.location.host + "/ws");
-            this.socket.onopen = (e) =>{
+        if(io !== undefined){
+            if(this.socket === null){
+                this.socket = io(this._get_current_host());
+            }
+
+            this.socket.on("connection",(e)=>{
                 this.connected = true;
-            };
+            });
 
-            this.socket.onclose = (e)=>{
-                this.connected = close;
-            };
+            this.socket.on("disconnect",(e)=>{
+                this.connected = false;
+            });
 
-            this.socket.onmessage = (e)=>{
-                let msg = null;
-                try{
-                    msg = JSON.parse(e.data);
-                }catch(evt){
-                    return ;
-                }
-                if(this.socketQueue[msg.flag] != null){
-                    let execFunc = this.socketQueue[msg.flag];
-
-                    if(this.pendingFlags[msg.flag] != null){
-                        this.pendingFlags[msg.flag] = -1;
-                    }
-
-                    execFunc(msg);
-                    delete this.socketQueue[msg.flag];
-                }
-
+            this.socket.on("message", (msg)=>{
                 // exec binded functions
                 if(this.bindEvents[msg.event] != null){
                     let execFunc = this.bindEvents[msg.event];
                     execFunc(msg);
                 }
-            };
-
-            this.socket.onerror = (e)=>{
-                console.log(e);
-            };
-        }else{
-            // fallback for IE9
-            // TODO
-            // Nigshoxiz
-            // 2017-3-3
+            });
         }
     }
+
+    // deprecated!
+    // 2017/4/16
+    // DemoHn
 
     // callback definition: callback_success(msg)
     send(event_name, props, callback_success, callback_timeout){
@@ -102,7 +84,7 @@ class WebSocket {
             "props" : props
         };
 
-        this.socket.send(JSON.stringify(send_json));
+        this.socket.emit("message", send_json);
 
         // if callback success is a function
         if(typeof(callback_success) == "function"){
@@ -129,6 +111,7 @@ class WebSocket {
     }
 
     bind(event_name, bind_func){
+        console.log(bind_func);
         if(typeof(bind_func) == "function"){
             this.bindEvents[event_name] = bind_func;
         }

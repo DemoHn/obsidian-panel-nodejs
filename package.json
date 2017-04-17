@@ -22,14 +22,16 @@
     "morgan": "^1.8.1",
     "multer": "^1.3.0",
     "mysql": "^2.13.0",
-    "node-getopt": "^0.2.3",
     "node-ipc": "^8.10.3",
+    "node-tar.gz": "^1.0.0",
     "proc-cpuinfo": "^1.0.0",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
     "sequelize": "^3.30.3",
     "socket.io": "^1.7.3",
-    "sqlite3": "^3.1.8"
+    "sqlite3": "^3.1.8",
+    "tar-fs": "^1.15.2",
+    "unzip": "^0.1.11"
   },
   "devDependencies": {
     "chai": "^3.5.0",

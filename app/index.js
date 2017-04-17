@@ -7,6 +7,10 @@ const bodyParser = require("body-parser");
 const rtn = require("../utils/rtn");
 let app = express();
 
+let server = require("http").Server(app);
+//wrap io
+let io = require("socket.io")(server);
+
 // template engine
 app.set('views', path.join(__dirname, '..', 'static', 'html'));
 app.set('view engine', 'ejs');
@@ -49,13 +53,16 @@ app.use((req, res, next) => {
     next();
 });
 
+// use socket.io
+app.use((req, res, next) => {
+    res.io = io;
+    next();
+});
+
 // serve static resources
 require("./views")(app);
 require("./api")(app);
 
-let server = require("http").Server(app);
-//wrap io
-let io = require("socket.io")(server);
 
 module.exports = {
     app: app,

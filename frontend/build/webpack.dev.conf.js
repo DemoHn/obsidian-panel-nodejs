@@ -27,7 +27,7 @@ module.exports = merge(baseWebpackConfig, {
       // https://github.com/ampedandwired/html-webpack-plugin
       new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: 'super_admin.index.html',
+      template: 'ejs!super_admin.index.html',
       inject: true
     })
   ]

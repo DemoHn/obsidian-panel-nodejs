@@ -176,7 +176,7 @@ export default {
             let _dw = msg["result"][0];
 
             let _index = this._find_index_by_hash(_hash);
-            if (_total !== null && _dw !== null && _total > 0) {
+            if (_total !== null && _dw !== null && _total > 0 && _index != null) {
                 if(this.versions[_index]["btn_status"] != null)
                     this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
             }
@@ -187,7 +187,7 @@ export default {
             let _result = msg["result"];
 
             let _index = this._find_index_by_hash(_hash);
-            if(_result){
+            if(_result && _index != null){
                 this.versions[_index]["btn_status"]["status"] = EXTRACTING;
             }else{
                 this.versions[_index]["btn_status"]["status"] = FAIL;
@@ -198,7 +198,7 @@ export default {
             let _hash = msg["hash"];
             let _result = msg["result"];
             let _index = this._find_index_by_hash(_hash);
-            if(_result){
+            if(_result && _index != null){
                 this.versions[_index]["btn_status"]["status"] = FINISH; //extract success
             }else{
                 this.versions[_index]["btn_status"]["status"] = EXTRACT_FAIL;

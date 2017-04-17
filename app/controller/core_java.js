@@ -59,9 +59,9 @@ class JavaBinaryPool {
         let cpy_tasks = {};
         for(let item in this.tasks){
             cpy_tasks[item] = {
-                "link": self.tasks[item]["link"],
-                "status": self.tasks[item]["status"],
-                "progress": self.tasks[item]["progress"],
+                "link": this.tasks[item]["link"],
+                "status": this.tasks[item]["status"],
+                "progress": this.tasks[item]["progress"]
             }
         }
 
@@ -103,10 +103,10 @@ const _reject_end = (res, err_code) => {
 const java_download_list = () => {
     const base_link = [
         /*major,minor,link*/
-        [8,112,"http://download.oracle.com/otn-pub/java/jdk/8u112-b15/e9e7ea248e2c4826b92b3f075a80e441/jre-8u112"],
-        [8,102,"http://download.oracle.com/otn-pub/java/jdk/8u102-b14/e9e7ea248e2c4826b92b3f075a80e441/jre-8u102"],
-        [8,101,"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/e9e7ea248e2c4826b92b3f075a80e441/jre-8u101"],
-        [7,80,"http://download.oracle.com/otn-pub/java/jdk/7u80-b15/e9e7ea248e2c4826b92b3f075a80e441/jre-7u80"],
+        [8,112,"http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112"],
+        [8,102,"http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102"],
+        [8,101,"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101"],
+        [7,80,"http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80"],
     ];
 
     let _model_arr = [];
@@ -139,15 +139,6 @@ const java_download_list = () => {
 
 // global variable
 const java_binary_pool = new JavaBinaryPool();
-
-// when a donwloading task start, those events will be triggered.
-const download_events = {
-    _get_progress : ()=>{},
-    _extract_start: ()=>{},
-    _extract_finish: ()=>{},
-    _download_finish: ()=>{},
-    _download_start: ()=>{}
-};
 
 module.exports = {
     _java_binary_pool: java_binary_pool,
@@ -323,7 +314,74 @@ module.exports = {
     // get java donwload list
     // no params
     get_java_download_list : (req, res, next) => {
-        res.success(java_download_list());
+        /*
+        dw_list model:
+        {
+            "major" : ***,
+            "minor" : ***,
+            "link" : ***,
+            "dw" : {
+                "progress",
+                "status",
+                "current_hash",
+            }
+        }
+        */
+        const JavaBinary = model.get("JavaBinary");
+
+        let _list = java_download_list();
+        let dw_list = [];
+
+        JavaBinary.findAll().then(
+            (binary) => {
+                for(let i=0;i<_list.length;i++){
+                    let item = _list[i];
+                    let _dw = {
+                        "progress" : 0,
+                        "status": _utils.WAIT,
+                        "current_hash" : ""
+                    };
+
+                    // read from tasks
+                    let all_tasks = java_binary_pool.get_all();
+                    for(let task in all_tasks){
+                        if(all_tasks[task]["link"] == item["link"]){
+                            _dw["progress"] = all_tasks[task]["progress"];
+                            _dw["status"] = all_tasks[task]["status"];
+                            _dw["current_hash"] = task;
+                            break;
+                        }
+                    }
+
+                    // read if registered
+                    if(binary != null){
+                        for(let bin in binary){
+                            if(bin.major_version === item["major"] + "" 
+                            && bin.minor_version === item["minor"] + ""){
+                                _dw["status"] = _utils.FINISH;
+                                break;
+                            }
+                        }
+                    }
+
+                    // conclusion
+                    let _model = {
+                        major: item["major"],
+                        minor: item["minor"],
+                        link: item["link"],
+                        dw: _dw
+                    }
+                    dw_list.push(_model);
+                }
+                
+                res.success(dw_list);
+            },
+            (err) => {
+                console.log(err);
+                res.error(500);
+            }
+        );
+        
     },
 
     // add java version info database manually
@@ -350,7 +408,7 @@ module.exports = {
 
     // @param: query -> index
     start_download_java: (req, res, next) => {
-
+        const JavaBinary = model.get("JavaBinary");
         let index = req.query.index;
 
         if(!utils.types.likeNumber(index)){
@@ -370,7 +428,72 @@ module.exports = {
 
             const cmd_args = `--spec=jre --url=${__url} --dest=${__dest}`;
 
-            let proc = cp.fork("../../tools/downloader", cmd_args);
+            // launch downloader process!
+            const downloader_module = utils.resolve(
+                __dirname,
+                "../../tools/downloader"
+            );
+
+            let proc = cp.fork(downloader_module, cmd_args.split(" "));
+
+            // after that, handover consecutive operations to event hooks!
+            proc.on("message", (data)=>{
+                let event = data.event;
+                // send websocket data
+                res.io.emit("message", data);
+                
+                // handle events 
+                if(event === "_download_start"){
+                    java_binary_pool.add(data.hash, data.result);
+                }else if(event === "_get_progress"){
+                    let _dw = data.result[0];
+                    let _fz = data.result[1];
+                    let _prog = 0.0;
+                    if(_fz == null){
+                        _prog = 0;
+                    }else{
+                        _prog = _dw / _fz;
+                    }
+                    java_binary_pool.update(data.hash, _utils.DOWNLOADING, _prog);
+                }else if(event === "_download_finish"){
+                    if(data.result === true){
+
+                        const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes");
+                        // start extracting file
+                        const unzip_cmd_args = `--method=unzip --type=tar --target=${__dest} --dest=${__bin_dir}`;
+
+                        const unzip_module = utils.resolve(
+                            __dirname,
+                            "../../tools/unzip"
+                        );
+
+                        let proc = cp.fork(unzip_module, unzip_cmd_args.split(" "));
+                        // send msg to client
+                        res.io.emit("message", {hash: data.hash, event: "_extract_start",result: true});
+                        java_binary_pool.update(data.hash, _utils.EXTRACTING, null);
+
+                        proc.on('exit', (result) => {
+                            if(result === 0){
+                                //extract success
+                                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
+                                // TODO Add JavaBinary data column
+                                /*JavaBinary.create({
+                                    "major_version" : ,
+                                    "minor_version" : "",
+                                    "bin_directory" : __bin_dir
+
+                                });*/
+                            }else{
+                                //extract fail
+                                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
+                            }
+                        })
+                    }else{
+                        java_binary_pool.update(data.hash, _utils.FAIL, null);
+                    }
+                }
+            });
+
             res.success(200);
         }
     }

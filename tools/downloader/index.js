@@ -1,7 +1,7 @@
 const download = require("./download");
 
 // node-getopt
-let opt = require('node-getopt').create([
+let opt = require('../../utils/getopt').create([
   [''  , 'spec=ARG' , 'spec'],
   [''  , 'dest=ARG' , 'download destination'],
   [''  , 'url=ARG'  , 'downlod url'],

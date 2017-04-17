@@ -1,7 +1,7 @@
 ## Downloader Tool Documentation
 
 _Author: Nigshoxiz_   
-_Last Update: 04/04/2017_  
+_Last Update: 16/04/2017_  
 
 1. Overview
 
@@ -37,3 +37,7 @@ Another is to call it internally. The most advantage of this way is the ability 
     value: `jre`  
     Some download methods require special parameters. For example, downloading jre from orancle needs to pass cookie values.  
     e.g. : `--spec=jre`
+
+    - `--hash`
+    [Optional] a random string denoting the name of current downloading task. By default, it's the dest filename.
+    e.g. : If dest_file = `/tmp/abc.de`, then `hash = abc.de`;
