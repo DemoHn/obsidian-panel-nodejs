@@ -1,6 +1,7 @@
 const os = require("os");
 const fs = require("fs");
 const cp = require("child_process");
+const mkdirp = require("mkdirp");
 
 const utils = require("../../utils");
 const model = require("../model");
@@ -107,16 +108,24 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
     const version = `${major_version}u${minor_version}`;
     const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes", version);
 
+    mkdirp.sync(__bin_dir);
     if(os.platform() === "linux"){ // linux - to extract
         // start extracting file
+        /*
         const unzip_cmd_args = `--method=unzip --type=tar --target=${__dest} --dest=${__bin_dir}`;
 
         const unzip_module = utils.resolve(
             __dirname,
             "../../tools/unzip"
-        );
-
+        );        
         let proc = cp.fork(unzip_module, unzip_cmd_args.split(" "));
+        */
+
+        // use `tar` command
+        let proc = cp.exec(`tar -xzf ${__dest} -C ${__bin_dir}`, (err, stdout,stderr) => {
+            console.log(stdout);
+            console.log(stderr);
+        });
         // send msg to client
         res.io.emit("message", {hash: hash, event: "_extract_start",result: true});
         java_binary_pool.update(hash, _utils.EXTRACTING, null);
@@ -151,6 +160,9 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
         fs.renameSync(__dest, __dest_rename);
 
         let proc = cp.exec(`${__dest_rename} ${installer_args}`);
+
+        res.io.emit("message", {hash: hash, event: "_extract_start",result: true});
+        java_binary_pool.update(hash, _utils.EXTRACTING, null);
         console.log(`Installing JRE ${version}`);
 
         proc.on('exit', (result) => {
@@ -431,7 +443,8 @@ module.exports = {
 
                     // read if registered
                     if(binary != null){
-                        for(let bin in binary){
+                        for(let _i=0;_i<binary.length;_i++){
+                            let bin = binary[_i];
                             if(bin.major_version === item["major"] + "" 
                             && bin.minor_version === item["minor"] + ""){
                                 _dw["status"] = _utils.FINISH;
