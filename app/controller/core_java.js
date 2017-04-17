@@ -105,9 +105,9 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
     // version name (XuYY format)
     // e.g. : 8u112
     const version = `${major_version}u${minor_version}`;
-    
+    const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes", version);
+
     if(os.platform() === "linux"){ // linux - to extract
-        const __bin_dir = utils.resolve(utils.get_config()["global"]["data_dir"], "exes", version);
         // start extracting file
         const unzip_cmd_args = `--method=unzip --type=tar --target=${__dest} --dest=${__bin_dir}`;
 
@@ -124,7 +124,7 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
         proc.on('exit', (result) => {
             if(result === 0){
                 //extract success
-                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
+                res.io.emit("message", {hash: hash, event: "_extract_finish",result: true});
 
                 JavaBinary.create({
                     "major_version" : major_version,
@@ -135,13 +135,13 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
                 // we suppose this record would insert successfully.
             }else{
                 //extract fail
-                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
+                res.io.emit("message", {hash: hash, event: "_extract_finish",result: false});
                 java_binary_pool.update(hash, _utils.EXTRACT_FAIL, null);
             }
         });
 
     }else if(/^win/.test(os.platform()) === true){ // windows - run installer
-        const installer_args = `INSTALL_SLIENT=Enable INSTALLDIR=${__bin_dir} STATIC=1 REBOOT=Disable AUTO_UPDATE=Disable`;
+        const installer_args = `INSTALL_SILENT=Enable INSTALLDIR=${__bin_dir} STATIC=1 REBOOT=Disable AUTO_UPDATE=Disable`;
 
         // for windows, if you want to execute a exe file
         // file extension name shall exists
@@ -151,22 +151,24 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
         fs.renameSync(__dest, __dest_rename);
 
         let proc = cp.exec(`${__dest_rename} ${installer_args}`);
+        console.log(`Installing JRE ${version}`);
+
         proc.on('exit', (result) => {
             if(result == 0){
                 //extract success
-                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: true});
+                res.io.emit("message", {hash: hash, event: "_extract_finish",result: true});
 
                 JavaBinary.create({
                     "major_version" : major_version,
                     "minor_version" : minor_version,
-                    "bin_directory" : utils.resolve(__bin_dir, `jre1.${major_version}.0_${minor_version}`, "bin", "java"),
+                    "bin_directory" : utils.resolve(__bin_dir, "bin", "java.exe"),
                     "install_time" : new Date()
                 });
                 // rename back to original file
                 fs.renameSync(__dest_rename, __dest);
             }else{
                 //extract fail
-                res.io.emit("message", {hash: data.hash, event: "_extract_finish",result: false});
+                res.io.emit("message", {hash: hash, event: "_extract_finish",result: false});
                 java_binary_pool.update(hash, _utils.EXTRACT_FAIL, null);
             }
         });
