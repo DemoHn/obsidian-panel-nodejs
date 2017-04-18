@@ -419,11 +419,17 @@ export default {
                 "password" : msg["ftp_password"]
             }
 
+            if(msg["server_properties"]["motd"] == null){
+                msg['server_properties']["motd"] = "";
+            }
+            
             v.$refs.MOTD.load_motd(msg['server_properties']['motd']);
             v.init_conf = deepcopy(msg);
+
             for(let item in msg){
                 v[item] = msg[item];
             }
+
         });
     }
 }

@@ -23,7 +23,9 @@ router.get("/init_edit_data/:inst_id",
     inst_ctrl.prepare_edit_data
 );
 
-router.post("/edit_config/:inst_id", inst_ctrl.edit_instance);
+router.post("/edit_config/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.edit_instance);
 
 //router.post("/upload_logo/:inst_id", inst_ctrl.upload_logo);
 //router.post("/delete_logo/:inst_id", inst_ctrl.upload_logo);

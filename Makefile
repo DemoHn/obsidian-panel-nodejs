@@ -6,9 +6,9 @@ compile:
 
 enclose:
 	mkdir -p dist/bin
-	mkdir -p dist/lib
 	enclose -v 6.3.1 -c .enclose.config.js -o obsidian start-panel.js
 	mv obsidian dist/bin
+	cp ./node_modules/sqlite3/lib/binding/node-v48-linux-x64/node_sqlite3.node dist/bin
 
 build_frontend:
 	cd frontend && npm run build

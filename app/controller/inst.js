@@ -418,6 +418,10 @@ module.exports = {
                         _model.world_name = data.inst_name;
                         _model.listen_port = data.listening_port;
 
+                        // core_id & java_bin_id
+                        _model.core_file_id = data.core_file_id;
+                        _model.java_bin_id = data.java_bin_id;
+
                         // parse server propertiers
                         let file_server_properties = utils.resolve(data.inst_dir, "server.properties");
 
@@ -512,11 +516,295 @@ module.exports = {
     },
 
     edit_instance(req, res, next){
+        const FTPAccount = model.get("FTPAccount"),
+              ServerInstance = model.get("ServerInstance"),
+              ServerCore = model.get("ServerCore"),
+              JavaBinary = model.get("JavaBinary");
 
+        const _edit_item = {
+            // standard edit item format:
+            // resolve: true | false, e.g.: resolve(true)
+            // reject: <error_code>, e.g.: reject(406)
+            
+            // function name shall be prefixed with _ e.g.: '_world_name'
+            // req._uid -> uid
+            // req._inst_id -> inst_id
+            _world_name(value){
+                return new Promise((resolve, reject) => {
+                    if(value == "" || value == null){
+                        reject(406);
+                    }else{
+                        ServerInstance.findOne({
+                            where: {
+                                owner_id: req._uid,
+                                inst_name : value
+                            }
+                        }).then((data) => {
+                            if(data == null){
+                                ServerInstance.update({inst_name: value}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                            }else{
+                                // duplicated!
+                                resolve(false);
+                            }
+                        }, (err) => {reject(500);});
+                    }
+                });
+            },
+
+            _number_RAM(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        let v = Math.floor(parseInt(value) * 1024);
+                        ServerInstance.update({max_RAM: v}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                    }
+                });
+            },
+
+            _number_players(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        let v = parseInt(value);
+                        ServerInstance.update({max_user: v}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                    }
+                });
+            },
+
+            _listen_port(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        ServerInstance.findOne({
+                            where: {
+                                listening_port: parseInt(value)
+                            }
+                        }).then((data) => {
+                            if(data == null){
+                                ServerInstance.update({listening_port: parseInt(value)}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                            }else{
+                                // duplicated!
+                                resolve(false);
+                            }
+                        }, (err) => {reject(500);});
+                    }
+                });
+            },
+
+            _core_file_id(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        ServerCore.findOne({
+                            where: {
+                                core_id: parseInt(value)
+                            }
+                        }).then((data) => {
+                            // ensure core_id exists
+                            if(data !== null){
+                                ServerInstance.update({core_file_id: parseInt(value)}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                            }else{
+                                // duplicated!
+                                resolve(false);
+                            }
+                        }, (err) => {reject(500);});
+                    }
+                });
+            },
+
+            _java_bin_id(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        JavaBinary.findOne({
+                            where: {
+                                id: parseInt(value)
+                            }
+                        }).then((data) => {
+                            // ensure core_id exists
+                            if(data !== null){
+                                ServerInstance.update({java_bin_id: parseInt(value)}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                            }else{
+                                // duplicated!
+                                resolve(false);
+                            }
+                        }, (err) => {reject(500);});
+                    }
+                });
+            },
+
+            _java_bin_id(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.likeNumber(value) === false){
+                        reject(406);
+                    }else{
+                        JavaBinary.findOne({
+                            where: {
+                                id: parseInt(value)
+                            }
+                        }).then((data) => {
+                            // ensure core_id exists
+                            if(data !== null){
+                                ServerInstance.update({java_bin_id: parseInt(value)}, {where: {inst_id: req._inst_id}})
+                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
+                            }else{
+                                // duplicated!
+                                resolve(false);
+                            }
+                        }, (err) => {reject(500);});
+                    }
+                });
+            },
+
+            _server_properties(value){
+                return new Promise((resolve, reject) => {
+                    if(utils.types.isPlainObject(value) === false){
+                        reject(406);
+                    }else{
+                        let s_p_config = {};
+                        // replace a_b -> a-b
+                        for(let item in value){
+                            let new_item = item.replace("_", "-");
+                            s_p_config[new_item] = value[item];
+                        }
+
+                        ServerInstance.findOne({
+                            inst_id: req._inst_id
+                        }).then(
+                            (data) => {
+                                const inst_dir = data.inst_dir;
+                                let parser = new Parser(utils.resolve(inst_dir, "server.properties"));
+                                parser.loads();
+                                // modify data
+                                for(let item in s_p_config){
+                                    parser.replace(item, s_p_config[item]);
+                                }
+
+                                parser.dumps();
+                                delete parser;
+                                resolve(true);
+                            },
+                            (err) => {
+                                reject(500);
+                            }
+                        );
+                    }
+                })
+            },
+
+            _motd(value){
+                return new Promise((resolve, reject) => {
+
+                    ServerInstance.findOne({
+                        inst_id: req._inst_id
+                    }).then(
+                        (data) => {
+                            const inst_dir = data.inst_dir;
+                            let parser = new Parser(utils.resolve(inst_dir, "server.properties"));
+                            parser.loads();
+                            parser.replace("motd", value);
+                            parser.dumps();
+                            delete parser;
+                            resolve(true);
+                        },
+                        (err) => {
+                            reject(500);
+                        }
+                    );
+                });
+            },
+
+            _ftp_account_name(value){
+                return new Promise((resolve, reject) => {
+                    FTPAccount.findOne({
+                        where: {
+                            username: value
+                        }
+                    }).then((data) => {
+                        if(data == null){
+                            FTPAccount.update({username: value}, {where: {inst_id: req._inst_id}})
+                            .then(()=>{ 
+                                // TODO announce ftp_manager to update!
+                                resolve(true); 
+                            }, ()=>{ reject(500); });
+                        }else{
+                            // duplicated!
+                            resolve(false);
+                        }
+                    }, (err) => {reject(500);});
+                });
+            },
+
+            _ftp_password(value){
+                return new Promise((resolve, reject) => {
+                    const _default = value["default"];
+                    const _password = value["password"];
+
+                    let _update_data = {};
+
+                    if(_password == null){
+                        _password = "";
+                    }
+                    if(_default === false || _default === true){
+                        if(_default === true){
+                            _update_data = {
+                                default_password: _default
+                            };
+                        }else{
+                            _update_data = {
+                                default_password: _default,
+                                hash: utils.calc_hash(_password)
+                            };
+                        }
+
+                        FTPAccount.update(_update_data, {where: {inst_id: req._inst_id}})
+                        .then(()=>{
+                            // TODO announce ftp_manager to update!
+                            resolve(true);
+                        },(err)=>{
+                            reject(500);
+                        });
+                    }else{
+                        reject(406);
+                    }
+                });   
+            }
+        }
+
+        const key = req.body.key;
+        const value = req.body.value;
+
+        const _keys = [
+            "world_name", "number_RAM", "number_players", "listen_port", "core_file_id",
+            "java_bin_id", "server_properties", "ftp_account_name", "ftp_password", "motd"
+        ];
+
+        if(_keys.indexOf(key) < 0){
+            res.error(407);
+        }else{
+            let func = _edit_item["_" + key];
+
+            func(value).then((result) => {
+                res.success(result);
+            },(error_code) => {
+                res.success(false);    
+            })
+        }
     },
 
     delete_instance(req, res, next){
-
+        // TODO
     },
 
     // instance control
@@ -793,5 +1081,7 @@ module.exports = {
         }else{
             res.status(404).end();
         }
-    }
+    },
+
+
 }

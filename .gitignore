@@ -1,6 +1,7 @@
 frontend/node_modules/
 node_modules/
 _env/
+env/
 .vscode/
 dist/
 config.yml

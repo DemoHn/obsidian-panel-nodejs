@@ -39,7 +39,9 @@ module.exports = {
               changeOrigin: true
           },
           "_":{
-              rule:["/static/js/**"
+              rule:["/static/js/**",
+                    "/static/css/**",
+                    "/static/fonts/**"
                    ],
               target:"http://localhost:80"
 

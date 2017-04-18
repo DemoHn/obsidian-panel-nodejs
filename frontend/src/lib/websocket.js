@@ -111,7 +111,6 @@ class WebSocket {
     }
 
     bind(event_name, bind_func){
-        console.log(bind_func);
         if(typeof(bind_func) == "function"){
             this.bindEvents[event_name] = bind_func;
         }
