@@ -824,6 +824,9 @@ module.exports = {
 
     },
 
+    send_command(req, res, next){
+
+    },
     // miscellaneous
     // new_inst
     
@@ -1069,6 +1072,30 @@ module.exports = {
         }
     },
 
+    // the only difference between `upload_logo` and 
+    // `upload_logo_to_inst` is `upload_logo_to_inst` will move the file
+    // to inst_dir directly.
+    upload_logo_to_inst(req, res, next){
+        const file = req.file;
+
+        const ServerInstance = model.get("ServerInstance");
+
+        ServerInstance.findOne({
+            where: {
+                inst_id: req._inst_id
+            }
+        }).then(
+            (data) => {
+                const logo_file = utils.resolve(data.inst_dir, "server-icon.png");
+                fs.moveSync(file.path, logo_file, {overwrite: true});
+                res.success(true);
+            },
+            (err) => {
+                res.error(500);
+            }
+        );
+    },
+
     // @param : logo
     preview_logo(req, res, next){
         const logo_url = req.params.logo,
@@ -1083,5 +1110,48 @@ module.exports = {
         }
     },
 
+    if_logo_exists(req, res, next){
+        const ServerInstance = model.get("ServerInstance");
 
+        ServerInstance.findOne({
+            where: {
+                inst_id: req._inst_id
+            }
+        }).then(
+            (data) => {
+                const logo_file = utils.resolve(data.inst_dir, "server-icon.png");
+                if(utils.exists(logo_file)){
+                    res.success(true);
+                }else{
+                    res.success(false);
+                }
+            },
+            (err) => {
+                res.error(500);
+            }
+        );
+    },
+
+    delete_logo(req, res, next){
+        const ServerInstance = model.get("ServerInstance");
+
+        ServerInstance.findOne({
+            where: {
+                inst_id: req._inst_id
+            }
+        }).then(
+            (data) => {
+                const logo_file = utils.resolve(data.inst_dir, "server-icon.png");
+                try {
+                    fs.unlinkSync(logo_file);    
+                    res.success(true);
+                } catch (error) {
+                    res.error(500);
+                }
+            },
+            (err) => {
+                res.error(500);
+            }
+        );
+    }
 }
