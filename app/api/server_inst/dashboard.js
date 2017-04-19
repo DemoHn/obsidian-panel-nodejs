@@ -57,4 +57,33 @@ router.get("/get_miscellaneous_info/:inst_id",
     check_login_ctrl.check_inst_id,
     dashboard_ctrl.get_miscellaneous_info);
 
+// inst operation
+router.get("/get_instance_status/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.get_instance_status);
+
+router.get("/get_instance_log/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.get_instance_log);
+
+router.get("/start_instance/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.start_instance);
+
+router.get("/stop_instance/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.stop_instance);
+
+router.get("/terminate_instance/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.terminate_instance);
+
+router.get("/restart_instance/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.restart_instance);
+
+router.get("/send_command/:inst_id",
+    check_login_ctrl.check_inst_id,
+    inst_ctrl.send_command);
+
 module.exports = router;

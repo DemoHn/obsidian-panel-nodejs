@@ -6,7 +6,13 @@ class MCProcessCallback {
     }
 
     on_log_update(inst_id, pipe, log){
-
+        let _data;
+        if(log instanceof Buffer){
+            _data = log.toString();
+        }else{
+            _data = log;
+        }
+        console.log(_data);
     }
 
     on_instance_start(inst_id){

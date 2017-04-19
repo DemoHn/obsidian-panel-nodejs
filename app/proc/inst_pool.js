@@ -16,7 +16,7 @@ const TYPES = ["config", "status", "daemon", "info", "process"];
 let instance_pool = {};
 
 module.exports = {
-    "add": (inst_id, config, status, daemon, info, process)=>{
+    add(inst_id, config, status, daemon, info, process){
         // check if instance is legal
         if(
             config instanceof require("./config") &&
@@ -38,47 +38,20 @@ module.exports = {
             return new Error("instance check failed!");
         }
     },
-    "get": (inst_id)=>{
+    get(inst_id){
         if(instance_pool[inst_id] != undefined){
             return instance_pool[inst_id];
         }else{
             return null;
         }
     },
-    // get sub-items
-    get_info: (inst_id)=>{
-        return this._get(inst_id, "info");
+
+    clear(){
+        instance_pool = {};
     },
-    get_status: (inst_id)=>{
-        return this._get(inst_id, "status");
-    },
-    get_config: (inst_id)=>{
-        return this._get(inst_id, "config");
-    },
-    get_daemon: (inst_id)=>{
-        return this._get(inst_id, "daemon");
-    },
-    get_process: (inst_id)=>{
-        return this._get(inst_id, "process");
-    },
-    // set sub-items
-    set_info: (inst_id, info)=>{
-        this._set(inst_id, "info", info);
-    },
-    set_process: (inst_id, process)=>{
-        this._set(inst_id, "process", process);
-    },
-    set_daemon: (inst_id, daemon)=>{
-        this._set(inst_id, "daemon", daemon);
-    },
-    set_status: (inst_id, status)=>{
-        this._set(inst_id, "status", status);
-    },
-    set_config: (inst_id, config)=>{
-        this._set(inst_id, "config", config);
-    },
+
     // private method
-    "_get": (inst_id, type)=>{
+    _get(inst_id, type){
         // check type available
         if(TYPES.indexOf(type) > -1){
             return instance_pool[inst_id][type];
@@ -86,11 +59,43 @@ module.exports = {
             return null;
         }
     },
-    "_set": (inst_id, type, new_val)=>{
+    _set(inst_id, type, new_val){
         if(TYPES.indexOf(type) > -1){
             instance_pool[inst_id][type] = new_val;
         }else{
             return null;
         }
+    },
+    // get sub-items
+    get_info(inst_id){
+        return this._get(inst_id, "info");
+    },
+    get_status(inst_id){
+        return this._get(inst_id, "status");
+    },
+    get_config(inst_id){
+        return this._get(inst_id, "config");
+    },
+    get_daemon(inst_id){
+        return this._get(inst_id, "daemon");
+    },
+    get_process(inst_id){
+        return this._get(inst_id, "process");
+    },
+    // set sub-items
+    set_info(inst_id, info){
+        this._set(inst_id, "info", info);
+    },
+    set_process(inst_id, process){
+        this._set(inst_id, "process", process);
+    },
+    set_daemon(inst_id, daemon){
+        this._set(inst_id, "daemon", daemon);
+    },
+    set_status(inst_id, status){
+        this._set(inst_id, "status", status);
+    },
+    set_config(inst_id, config){
+        this._set(inst_id, "config", config);
     }
 };

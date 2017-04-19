@@ -3,9 +3,9 @@ const fs = require("fs-extra");
 const cp = require("child_process");
 const mkdirp = require("mkdirp");
 
-
 const Parser = require("../proc/parser");
 
+const proc = require("../proc");
 const model = require("../model");
 const utils = require("../../utils");
 module.exports = {
@@ -808,24 +808,50 @@ module.exports = {
     },
 
     // instance control
-    start_instance(req, res, next){
+    get_instance_status(req, res, next){
+        let status = proc.get_instance_status(req._inst_id);
 
+        if(status == null){
+            res.error(500);
+        }else{
+            res.success(status);
+        }
+    },
+
+    get_instance_log(req, res, next){
+        let _log = proc.get_instance_log(req._inst_id);
+
+        if(_log == null){
+            res.error(500);
+        }else{
+            res.success(_log);
+        }
+    },
+
+    start_instance(req, res, next){
+        proc.start_instance(req._inst_id);
+        res.success(true);
     },
 
     stop_instance(req, res, next){
-
+        proc.stop_instance(req._inst_id);
+        res.success(true);
     },
 
     terminate_instance(req, res, next){
-
+        proc.terminate_instance(req._inst_id);
+        res.success(true);
     },
 
     restart_instance(req, res, next){
-
+        proc.restart_instance(req._inst_id);
+        res.success(true);
     },
 
     send_command(req, res, next){
-
+        let command = req.params.command;
+        proc.send_command(req._inst_id, command);
+        res.success(200);
     },
     // miscellaneous
     // new_inst

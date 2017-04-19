@@ -14,6 +14,7 @@ const inst_pool = require("./inst_pool");
 const STDIN = 0, STDOUT = 1, STDERR = 2;
 class MCProcess extends ProcessCallback {
     constructor(inst_id, proc_config){
+        super();
         this.inst_id = inst_id;
         this.proc_config = proc_config;
 
@@ -42,7 +43,7 @@ class MCProcess extends ProcessCallback {
         if(!utils.exists(s_p_file))
             utils.write(s_p_file, "");
 
-        parser = new Parser(s_p_file);
+        let parser = new Parser(s_p_file);
         parser.replace("port", port);
         parser.replace("max-player", max_player);
 
@@ -55,7 +56,7 @@ class MCProcess extends ProcessCallback {
     }
     /* start / stop process */
     start_process(){
-        cmd_args = [`-Xms${this.proc_config.min_RAM}M`,
+        const cmd_args = [`-Xms${this.proc_config.min_RAM}M`,
                     `-Xmx${this.proc_config.max_RAM}M`,
                     "-jar",
                     this.proc_config.jar_file,
@@ -65,7 +66,7 @@ class MCProcess extends ProcessCallback {
             this.proc_config.port, 
             this.proc_config.max_player);
 
-        console.debug("cmd args: %s" % cmd_args)
+        console.log("cmd args: %s", cmd_args);
 
         const proc_spawn_options = {
             cwd : this.proc_config.proc_cwd,

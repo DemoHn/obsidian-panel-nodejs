@@ -13,12 +13,17 @@ module.exports = {
     salt : _salt,
 
     // constants
+    // priv
     ULTIMATE : 0,
     ROOT_USER : 1,
     FREE_USER : 2,
     INST_OWNER : 4,
     EVERYONE : 8,
-
+    // server state
+    HALT: 0,
+    STARTING: 1,
+    RUNNING: 2,
+    
     // hash
     calc_hash : (password) => {
         const concat_buffer = Buffer.concat([Buffer.from(password), _salt]);

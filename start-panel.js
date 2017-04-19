@@ -5,6 +5,7 @@ const mkdirp = require("mkdirp");
 
 const app = require("./app").app;
 const server = require("./app").server;
+const proc = require("./app/proc");
 const utils = require("./utils");
 const model = require("./app/model");
 
@@ -112,7 +113,16 @@ const launch_process = () => {
     // start (listen) the process
     console.log("[INFO] Start panel!");
     console.log(`[INFO] Server listen on ${server_port}`);
-    server.listen(server_port);
+
+    // init proc_pool
+    // For process watcher, all instances shall be registered to
+    // a global object (which name is `inst_pool`) before starting / stopping instances
+    proc.init_proc_pool().then(()=>{
+        // bind a port,start listening
+        server.listen(server_port);
+    },(err)=>{
+        console.log(err);
+    });    
 }
 
 const sync_model = () => {
@@ -137,6 +147,7 @@ if(rc === 1){
         // launch directly, without sync db model
         launch_process();
     }else{
+        // process `launch_process` is included in `sync_model`!
         sync_model();
     }
 }
