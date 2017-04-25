@@ -33,6 +33,7 @@ module.exports = {
                 info: info,
                 process: process
             };
+
             instance_pool[inst_id] = obj;
         }else{
             return new Error("instance check failed!");

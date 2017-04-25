@@ -141,7 +141,7 @@ module.exports = {
         _daemon.reset_crash_count()
     },
 
-    stop_instance(inst_id){
+    stop_instance(inst_id, _restart=null){
         let inst_obj = inst_pool.get(inst_id);
 
         if(inst_obj == null){
@@ -149,10 +149,13 @@ module.exports = {
         }
             
         let _proc    = inst_obj["process"],
-            _status  = inst_obj["status"];
+            _status  = inst_obj["status"],
+            _daemon  = inst_obj["daemon"];
 
         // the stop callback shall do the work of marking the new status (HALT)
         // and deduct active count. Don't do them HERE!
+        if(_restart == null)
+            _daemon.set_normal_exit(true);
         _proc.stop_process();
     },
 
@@ -164,10 +167,12 @@ module.exports = {
         }
             
         let _proc    = inst_obj["process"],
-            _status  = inst_obj["status"];
+            _status  = inst_obj["status"],
+            _daemon  = inst_obj["daemon"];
 
         // the stop callback shall do the work of marking the new status (HALT)
         // and deduct active count. Don't do them HERE!
+        _daemon.set_normal_exit(true);
         _proc.terminate_process();
     },
 
@@ -178,7 +183,8 @@ module.exports = {
         inst_daemon.set_normal_exit(true);
         // restart flag
         inst_daemon.set_restart_flag(true);
-        this.stop_instance(inst_id);
+        // inst_id, restart = true
+        this.stop_instance(inst_id, true);
     },
 
     send_command(inst_id, command){
@@ -195,18 +201,18 @@ module.exports = {
 
         // limit max command length to send
         if(_status == utils.RUNNING && command.length < 1000){
-
-            // if input 'stop', just stop it, do not restart the server.
-            // Because this command is surely propmted by user.
-            if(command === "stop"){
-                _daemon.set_normal_exit(true);
-            }
-
             _proc.send_command(command);
             // record the input into log object
             let _cmd_log = "⟹ %s\n" % command;
             // 0 for stdin
             _info.append_log(0,_cmd_log);
+
+            // if input 'stop', just stop it, do not restart the server.
+            // Because this command is surely propmted by user.
+            
+            if(command === "stop"){
+                _daemon.set_normal_exit(true);
+            }
         }
     },
 

@@ -89,7 +89,7 @@ class MCProcess extends ProcessCallback {
             this.on_log_update(this.inst_id, STDERR, chuck);
         });
         // on exit
-        this._process.on('close', this._on_exit);
+        this._process.on('close', this._on_exit(this));
         console.info("Start Process pid=(%s)" % this._pid);
 
         // run callback
@@ -109,13 +109,18 @@ class MCProcess extends ProcessCallback {
     terminate_process(){
         if(this._pid != null){
             // kill -9 <pid>
+            let _daemon = inst_pool.get_daemon(this.inst_id);
+            _daemon.set_normal_exit(true);
+
             this._process.kill("SIGKILL");
         }
     }
 
     send_command(command){
+        const _daemon = inst_pool.get_daemon(this.inst_id);
         let _command = command + "\n";
-        logger.debug(`write command: ${command}`);
+        console.log(`write command: ${command}`);
+
         this._stdin.write(_command);
     }
 
@@ -123,12 +128,16 @@ class MCProcess extends ProcessCallback {
 
     }
 
-    _on_exit(code){
-        console.log(`exit code: ${code}`);
-        this._pid = null;
+    _on_exit(self){
+        return (code) => {
+            console.log(`exit code: ${code}`);
+            self._pid = null;
 
-        let inst_daemon = inst_pool.get_daemon(this.inst_id);
-        inst_daemon.add_crash_count(); 
+            let inst_daemon = inst_pool.get_daemon(self.inst_id);
+            inst_daemon.add_crash_count();
+
+            this.on_instance_stop(self.inst_id, null);
+        }
     }
 
     get_pid(){

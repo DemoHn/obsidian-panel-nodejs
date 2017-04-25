@@ -24,7 +24,7 @@ class MCDaemonManager{
         */
         this._normal_exit = val;
         if(val === true){
-            this._restart_flag = False;
+            this._restart_flag = false;
         }
     }
     set_restart_flag(val){

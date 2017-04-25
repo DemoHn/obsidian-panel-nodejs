@@ -849,7 +849,7 @@ module.exports = {
     },
 
     send_command(req, res, next){
-        let command = req.params.command;
+        let command = req.query.command;
         proc.send_command(req._inst_id, command);
         res.success(200);
     },
