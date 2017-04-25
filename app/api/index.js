@@ -9,4 +9,5 @@ module.exports = (app)=>{
     app.use("/super_admin/info", require("./super_admin/info"));
     app.use("/super_admin/core", require("./super_admin/server_core"));
     app.use("/super_admin/java", require("./super_admin/java_binary"));
+    app.use("/super_admin/settings", require("./super_admin/settings"));
 }
