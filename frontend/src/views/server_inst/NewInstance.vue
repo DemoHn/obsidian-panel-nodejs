@@ -90,7 +90,7 @@
                              <select name="core_file_id" class="form-control" v-model="core_file_id" >
                                  <option :value="null" v-if="server_cores_list.length === 0">-- 还没有选择 --</option>
                                  <option :value="item['index']" v-for="item in server_cores_list">{{ item['name'] }}</option>
-                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core" target="_blank">添加核心</a>
+                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/core" target="_blank">添加核心</a>
                          </span>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                              <select class="form-control" v-model="java_bin_id">
                                  <option :value="null" v-if="java_versions_list.length === 0">-- 还没有选择 --</option>
                                  <option :value="item['index']" v-for="item in java_versions_list">{{ item['name'] }}</option>
-                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary" target="_blank">添加Java版本</a>
+                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java" target="_blank">添加Java版本</a>
                          </span>
                     </div>
                 </div>

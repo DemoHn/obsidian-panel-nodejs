@@ -100,7 +100,7 @@
                                      <div class="col-md-6">
                                          <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
                                              <span class="input-element">
-                                                 <select name="online-mode" class="form-control" v-model="server_properties.online_mode">
+                                                 <select name="online-mode" class="form-control" v-model="server_properties['online-mode']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -139,7 +139,7 @@
 
                                          <div class="setting-item"><span class="item-text">怪物生成</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.spawn_monsters">
+                                                 <select class="form-control" v-model="server_properties['spawn-monsters']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -148,7 +148,7 @@
 
                                          <div class="setting-item"><span class="item-text">生成下界</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.allow_nether">
+                                                 <select class="form-control" v-model="server_properties['allow-nether']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -159,17 +159,17 @@
                                      <div class="col-md-6" style="margin-left: -3rem;">
                                          <div class="setting-item"><span class="item-text">世界种子</span>
                                              <span class="input-element">
-                                                 <input class="form-control w-input" type="number" v-model="server_properties.level_seed" placeholder="留空即随机生成地图"/>
+                                                 <input class="form-control w-input" type="number" v-model="server_properties['level-seed']" placeholder="留空即随机生成地图"/>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">最大建筑高度</span>
                                              <span class="input-element">
-                                                 <input class="form-control w-input" type="number" v-model="server_properties.max_build_height"/>
+                                                 <input class="form-control w-input" type="number" v-model="server_properties['max-build-height']"/>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">命令方块</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.enable_command_block">
+                                                 <select class="form-control" v-model="server_properties['enable-command-block']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -177,7 +177,7 @@
                                          </div>
                                          <div class="setting-item"><span class="item-text">生成NPC</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.spawn_npcs">
+                                                 <select class="form-control" v-model="server_properties['spawn-npcs']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -185,7 +185,7 @@
                                          </div>
                                          <div class="setting-item"><span class="item-text">生成动物</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.spawn_animals">
+                                                 <select class="form-control" v-model="server_properties['spawn-animals']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -193,7 +193,7 @@
                                          </div>
                                          <div class="setting-item"><span class="item-text">锁定游戏模式</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="server_properties.force_gamemode">
+                                                 <select class="form-control" v-model="server_properties['force-gamemode']">
                                                      <option :value="true">开启</option>
                                                      <option :value="false">关闭</option>
                                                  </select>
@@ -289,7 +289,7 @@ export default {
     data(){
         let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "ftp_account_name", "number_players"];
         // items of game properties
-        let sp_keys = ["online_mode", "pvp", "difficulty", "gamemode","spawn_monsters", "allow_nether","level_seed", "max_build_height", "enable_command_block", "spawn_npcs", "sp_spawn_animals", "sp_force_gamemode"];
+        let sp_keys = ["online_mode", "pvp", "difficulty", "gamemode","spawn-monsters", "allow-nether","level-seed", "max-build-height", "enable-command-block", "spawn-npcs", "spawn-animals", "force-gamemode"];
         let dt = {
             'sel_val' : 'general',
             'inst_id' : this.$route.params.id,
@@ -404,6 +404,7 @@ export default {
     mounted(){
         let v = this;
         this.aj_get_init_data((msg)=>{
+            /*
             // replace "-" -> "_" in server_properties
             // e.g. : "online-mode" -> "online_mode"
             for(let key in msg["server_properties"]){
@@ -413,7 +414,7 @@ export default {
                     delete msg["server_properties"][key];
                 }
             }
-
+            */
             msg["ftp_password"] = {
                 "default" : msg["default_ftp_password"],
                 "password" : msg["ftp_password"]

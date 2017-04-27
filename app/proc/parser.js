@@ -6,6 +6,8 @@ class KVParser{
     constructor(file){
         this.file = file;
         this.conf_items = {};
+        // auto loads existing config items
+        this.loads();
     }
     /* load file */
     loads(){

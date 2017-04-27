@@ -16,6 +16,7 @@ const TYPES = ["config", "status", "daemon", "info", "process"];
 let instance_pool = {};
 
 module.exports = {
+    // and or replace
     add(inst_id, config, status, daemon, info, process){
         // check if instance is legal
         if(
@@ -45,6 +46,10 @@ module.exports = {
         }else{
             return null;
         }
+    },
+
+    get_all(){
+        return instance_pool;
     },
 
     clear(){

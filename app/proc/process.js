@@ -44,11 +44,11 @@ class MCProcess extends ProcessCallback {
             utils.write(s_p_file, "");
 
         let parser = new Parser(s_p_file);
-        parser.replace("port", port);
-        parser.replace("max-player", max_player);
+        parser.replace("server-port", port);
+        parser.replace("max-players", max_player);
 
         // export config to server.properties
-        parser.dumps()
+        parser.dumps();
     }
 
     load_config(mc_w_config){
@@ -56,8 +56,11 @@ class MCProcess extends ProcessCallback {
     }
     /* start / stop process */
     start_process(){
-        const cmd_args = [`-Xms${this.proc_config.min_RAM}M`,
-                    `-Xmx${this.proc_config.max_RAM}M`,
+        const min_RAM_in_MB = parseInt(this.proc_config.min_RAM * 1024),
+              max_RAM_in_MB = parseInt(this.proc_config.max_RAM * 1024);
+              
+        const cmd_args = [`-Xms${min_RAM_in_MB}M`,
+                    `-Xmx${max_RAM_in_MB}M`,
                     "-jar",
                     this.proc_config.jar_file,
                     "nogui"];

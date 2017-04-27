@@ -414,7 +414,7 @@ module.exports = {
                 ServerInstance.findOne({where: {inst_id : req._inst_id}}).then(
                     (data) => {
                         _model.number_players = data.max_user;
-                        _model.number_RAM = data.max_RAM / 1024;
+                        _model.number_RAM = data.max_RAM;
                         _model.world_name = data.inst_name;
                         _model.listen_port = data.listening_port;
 
@@ -557,7 +557,7 @@ module.exports = {
                     if(utils.types.likeNumber(value) === false){
                         reject(406);
                     }else{
-                        let v = Math.floor(parseInt(value) * 1024);
+                        let v = parseInt(value);
                         ServerInstance.update({max_RAM: v}, {where: {inst_id: req._inst_id}})
                                 .then(()=>{ resolve(true); }, ()=>{ reject(500); });
                     }
@@ -672,12 +672,7 @@ module.exports = {
                     if(utils.types.isPlainObject(value) === false){
                         reject(406);
                     }else{
-                        let s_p_config = {};
-                        // replace a_b -> a-b
-                        for(let item in value){
-                            let new_item = item.replace("_", "-");
-                            s_p_config[new_item] = value[item];
-                        }
+                        let s_p_config = value;
 
                         ServerInstance.findOne({
                             inst_id: req._inst_id

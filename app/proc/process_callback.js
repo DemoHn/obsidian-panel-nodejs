@@ -44,6 +44,8 @@ class MCProcessCallback {
 
     on_instance_start(inst_id){
         inst_pool.set_status(inst_id, utils.STARTING);
+        // reset RAM and current_player
+        inst_pool.get_info(inst_id).reset();
         _send_message(inst_id, "status_change", utils.STARTING);
     }
 
@@ -59,6 +61,7 @@ class MCProcessCallback {
         // if restart = true
         const inst_daemon = inst_pool.get_daemon(inst_id),
               inst_proc = inst_pool.get_process(inst_id),
+              inst_info = inst_pool.get_info(inst_id),
               inst_config = inst_pool.get_config(inst_id);
         
         if(inst_daemon.get_restart_flag()){
@@ -71,6 +74,7 @@ class MCProcessCallback {
 
         inst_daemon.set_restart_flag(true);
         inst_daemon.set_normal_exit(false);
+        inst_info.reset();
     }
 
     on_instance_unexpectedly_exit(inst_id){
@@ -119,14 +123,12 @@ class MCProcessCallback {
 
             inst_pool.set_status(inst_id, utils.RUNNING);
             this.on_instance_running(inst_id, start_time);
-        // user login
+        // player login
         }else if(re_login_str.test(log_str) === true && 
             inst_pool.get_status(inst_id) == utils.RUNNING){
-            
             let m = re_login_str.exec(log_str);
             let player_name = m[1];
             let player_ip = m[2];
-
             let _info = inst_pool.get_info(inst_id);
             _info.incr_current_player();
             this.on_player_login(inst_id, [player_name, player_ip]);
@@ -138,7 +140,7 @@ class MCProcessCallback {
 
             let _info = inst_pool.get_info(inst_id);
             _info.decr_current_player();
-            this.on_player_login(inst_id, [player_name]);
+            this.on_player_logout(inst_id, [player_name]);
         }
 
         // bind UUID : TODO

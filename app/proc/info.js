@@ -39,19 +39,11 @@ class MCInstanceInfo{
     }
 
     incr_current_player(current_player){
-        if(this.current_player == null){
-            this.current_player = 0;
-        }else{
-            this.current_player += 1;
-        }
+        this.current_player += 1;
     }
 
     decr_current_player(current_player){
-        if(this.current_player == null){
-            this.current_player = 0;
-        }else{
-            this.current_player += 1;
-        }
+        this.current_player -= 1;
     }
     /* get xxx */
     get_RAM(){

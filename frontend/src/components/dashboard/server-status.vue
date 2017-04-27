@@ -136,11 +136,11 @@ export default {
             }
 
             if(val.total_RAM != -1){
-                this.max_RAM = (val.total_RAM / 1024);
+                this.max_RAM = val.total_RAM;
             }
 
             if(val.RAM != -1){
-                this.current_RAM = (val.RAM / 2014).toFixed(1);
+                this.current_RAM = val.RAM.toFixed(1);
                 let ratio = val.RAM / val.total_RAM;
                 this.RAM_percent = (ratio * 100).toFixed(0);
                 this._update_loop(1, ratio);
@@ -165,9 +165,9 @@ export default {
 
         // $ ref API
         set_RAM(RAM){
-            this.current_RAM = (RAM / 1024).toFixed(2);
+            this.current_RAM = RAM.toFixed(2);
             if(Number.isInteger(this.max_RAM)){
-                let ratio = ((RAM / 1024) / this.max_RAM);
+                let ratio = (RAM / this.max_RAM);
                 this.RAM_percent = (ratio*100).toFixed(0);
                 this._update_loop(1, ratio);
             }else{

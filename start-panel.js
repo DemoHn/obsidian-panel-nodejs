@@ -113,16 +113,8 @@ const launch_process = () => {
     // start (listen) the process
     console.log("[INFO] Start panel!");
     console.log(`[INFO] Server listen on ${server_port}`);
-
-    // init proc_pool
-    // For process watcher, all instances shall be registered to
-    // a global object (which name is `inst_pool`) before starting / stopping instances
-    proc.init_proc_pool().then(()=>{
-        // bind a port,start listening
-        server.listen(server_port);
-    },(err)=>{
-        console.log(err);
-    });    
+    // bind a port,start listening
+    server.listen(server_port);
 }
 
 const sync_model = () => {
@@ -130,7 +122,14 @@ const sync_model = () => {
     model.__sequelize.sync().then(
         // if success
         ()=>{
-            launch_process();    
+            // init proc_pool
+            // For process watcher, all instances shall be registered to
+            // a global object (which name is `inst_pool`) before starting / stopping instances
+            proc.init_proc_pool().then(()=>{
+                launch_process();
+            },(err)=>{
+                console.log(err);
+            });            
         },
         // if error
         (err)=>{

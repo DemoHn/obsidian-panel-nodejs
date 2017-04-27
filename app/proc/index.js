@@ -1,4 +1,5 @@
 const os = require('os'),
+      pusage = require("pidusage"),
       model = require("../model"),
       utils = require("../../utils");
 
@@ -15,9 +16,10 @@ const _update_pool_data = (inst_id, db_item) => {
     let mc_w_config = {
         "jar_file": utils.resolve(db_item.ServerCore.file_dir, db_item.ServerCore.file_name),
         "java_bin": db_item.JavaBinary.bin_directory,
-        "max_RAM": Math.floor(db_item.max_RAM),
+        // NOTICE: here, the unit max_RAM and min_RAM is MB!
+        "max_RAM": parseFloat(db_item.max_RAM),        
+        "min_RAM": parseFloat(db_item.max_RAM * 0.5),
         "max_player": Math.floor(db_item.max_user),
-        "min_RAM": Math.floor(db_item.max_RAM / 2),
         "proc_cwd": db_item.inst_dir,
         "port": db_item.listening_port
     };
@@ -35,6 +37,20 @@ const _update_pool_data = (inst_id, db_item) => {
         new MCInstanceInfo(info["owner"], info["inst_id"]),
         new MCProcess(inst_id, mc_w_config)
     );
+};
+
+// send message
+const _send_message = (inst_id, event, value) => {
+    const io = require("../index").io;
+    const _values = {
+        event: event,
+        inst_id: inst_id,
+        value: value
+    };
+
+    if(event != null && event != ""){
+        io.emit("message", _values);
+    }
 };
 
 module.exports = {
@@ -59,6 +75,8 @@ module.exports = {
                     let db_item = data[_i];
                     _update_pool_data(db_item.inst_id, db_item);
                 }
+
+                this._start_counter();
                 resolve();
             },(err)=>{
                 console.log(err);
@@ -216,7 +234,31 @@ module.exports = {
         }
     },
 
-    _launch_loop(){
+    _start_counter(){
         // TODO
+        const counter_flag = setInterval(
+            () => {
+                const _all_inst = inst_pool.get_all();
+                // execute the following functions per 5 secs.
+
+                for(let inst_id in _all_inst){
+                    let inst = _all_inst[inst_id];
+                    if(inst.status === utils.RUNNING){
+                        let pid = inst.process.get_pid();
+
+                        if(pid == null){
+                            continue;
+                        }else{
+                            pusage.stat(pid, (err, stat) => {
+                                // stat = {"cpu": <cpu>, "memory":<mem> (bytes)}
+                                let mem = stat.memory / (1024*1024*1024); // unit: GB
+                                inst.info.set_RAM(mem);
+                                _send_message(inst_id, "memory_change", mem);
+                            });
+                            pusage.unmonitor(pid);
+                        }
+                    }
+                }
+            }, 5000);
     }
 }
