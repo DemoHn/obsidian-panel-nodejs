@@ -1,5 +1,6 @@
 const express = require("express");
 const path    = require("path");
+const cp      = require("child_process");
 const logger  = require("morgan");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -59,13 +60,16 @@ app.use((req, res, next) => {
     next();
 });
 
+// start ftp_manager
+const ftp_manager = cp.fork(path.join(__dirname, "../ftp_manager"));
+
 // serve static resources
 require("./views")(app);
 require("./api")(app);
 
-
 module.exports = {
     app: app,
     server: server,
-    io: io
+    io: io,
+    ftp_manager: ftp_manager
 }

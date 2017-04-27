@@ -1,5 +1,10 @@
+const model = require("../model");
+
 class MCInstanceInfo{
     constructor(owner=null, inst_id=null){
+        // constants
+        this.LOG_BLOCK_SIZE = 512;
+
         this.RAM = null;
         this.current_player = null;
         this.owner = owner;
@@ -60,6 +65,14 @@ class MCInstanceInfo{
 
     get_log(){
         return this.log;
+    }
+
+    _store_log_to_db(){
+        
+    }
+
+    _read_log_from_db(){
+
     }
 }
 
