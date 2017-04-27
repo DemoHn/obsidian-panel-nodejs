@@ -74,6 +74,7 @@ server.on('client:connected', function(connection) {
 // receive update message
 process.on("message", (data)=> {
     if(data === "update_ftp_manager"){
+        console.log("[FTP] Update FTP Account Info..");
         account_pool.update();
     }
 });

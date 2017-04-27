@@ -8,6 +8,7 @@ const Parser = require("../proc/parser");
 const proc = require("../proc");
 const model = require("../model");
 const utils = require("../../utils");
+
 module.exports = {
     /*create an new instance and init (check) properites*/
     /* 
@@ -311,6 +312,8 @@ module.exports = {
         // Thus, we will insert data into database directly.
         const ServerInstance = model.get("ServerInstance");
         const FTPAccount = model.get("FTPAccount");
+
+        const ftp_manager = require("../index").ftp_manager;
         // check variables
         const vars = ["_server_core_id", "_java_bin_id", "_max_RAM", "_inst_name",
             "_max_user", "_listening_port", "_ftp_account", "_inst_dir", "_inst_properties"];
@@ -355,6 +358,10 @@ module.exports = {
                 // ftp account
                 FTPAccount.update({inst_id: new_inst_id}, {where: {username: res._ftp_account, inst_id: 0}}).then(
                     (data) => {
+                        // update proc & ftp_manager pool
+                        proc.init_proc_pool();
+                        ftp_manager.send("update_ftp_manager");
+
                         res.success(new_inst_id);
                     },
                     (err) => {
@@ -777,6 +784,8 @@ module.exports = {
             }
         }
 
+        const ftp_manager = require("../index").ftp_manager;
+        
         const key = req.body.key;
         const value = req.body.value;
 
@@ -791,6 +800,10 @@ module.exports = {
             let func = _edit_item["_" + key];
 
             func(value).then((result) => {
+                // update proc & ftp_manager pool
+                proc.init_proc_pool();
+                ftp_manager.send("update_ftp_manager");
+
                 res.success(result);
             },(error_code) => {
                 res.success(false);    
