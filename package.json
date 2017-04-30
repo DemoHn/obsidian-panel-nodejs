@@ -5,11 +5,9 @@
   "main": "start.js",
   "scripts": {
     "test": "mocha --recursive",
-    "preinit":"if [ -d env ]; then echo 'skip installing nodeenv'; else nodeenv -n 6.3.1 env; fi;",
     "init": "npm install && cd frontend && npm install && cd .. ",
     "build_frontend": "cd frontend && npm run build && cd .. && rm -r static/js/*.map && rm -r static/css/*.map",
 
-    "prebuild": "mkdir -p dist/bin",
     "build": "npm run build_frontend && enclose -v 6.3.1 -c .enclose.config.js -o obsidian start-panel.js && mv obsidian dist/bin && cp ./node_modules/sqlite3/lib/binding/*/node_sqlite3.node dist/bin",
 
     "clean": "rm -rf dist",
