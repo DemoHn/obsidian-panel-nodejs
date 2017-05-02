@@ -2,7 +2,7 @@ module.exports = {
     scripts: [
         "./app/**/*.js",
         "./tools/**/*.js",
-        "./ftp_manager/**/*.js",
+        "./node_modules/shelljs/src/*.js",
         "start-panel.js"
     ],
     assets: [
@@ -11,6 +11,7 @@ module.exports = {
         "package.json",
     ],
     dirs: [
-        "./app/model"
+        "./app/model",
+        "./tools"
     ]
 }

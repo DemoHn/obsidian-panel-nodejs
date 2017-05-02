@@ -50,7 +50,7 @@ fs.copySync(sqlite3_node, path.resolve(__dirname, `../dist/bin/${sqlite3_node_di
 fs.renameSync(path.resolve(__dirname, `../${export_exe}`), path.resolve(__dirname, "../dist/bin/"+export_exe));
 
 // 6. copy config.yml
-fs.renameSync(path.resolve(__dirname, `../config.yml.sample`), path.resolve(__dirname, "../dist/bin/config.yml"));
+fs.copySync(path.resolve(__dirname, `../config.yml.sample`), path.resolve(__dirname, "../dist/bin/config.yml"));
 
 // 7. touch .startup.lck
 fs.writeFileSync(path.resolve(__dirname, "../dist/bin/.startup.lck"),"", {flag:"w+"});

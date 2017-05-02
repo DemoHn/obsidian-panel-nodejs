@@ -54,7 +54,7 @@
             </table>
         </div>
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" @click="submit" :disabled="!allow_submit">完成</md-button>
+            <md-button class="md-raised md-primary" @click.native="submit" :disabled="!allow_submit">完成</md-button>
         </div>
     </div>
 </template>
@@ -121,8 +121,7 @@
                 ftp_port: 21,
                 msgQ_port: 852,
                 redis_port:851,
-                pm_port:853,
-                allow_submit : false
+                pm_port:853
             }
         },
         computed:{

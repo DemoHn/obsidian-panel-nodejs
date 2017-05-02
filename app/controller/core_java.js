@@ -523,6 +523,7 @@ module.exports = {
                 "../../tools/downloader"
             );
 
+            console.log(downloader_module);
             let proc = cp.fork(downloader_module, cmd_args.split(" "));
 
             // after that, handover consecutive operations to event hooks!

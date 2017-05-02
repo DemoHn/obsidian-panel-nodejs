@@ -6,8 +6,9 @@
             </span>
             <span class="item-status">
                 <span v-show="JR_status == 0">
-                    <slot name="JR_loading"><i class="fa fa-spinner fa-spin fa-fw" style="color: darkblue;"></i></span></slot>
+                    <slot name="JR_loading"><i class="fa fa-spinner fa-spin fa-fw" style="color: darkblue;"></i></slot>
                 </span> <!-- loading -->
+            </span>
             <span v-show="JR_status == 1">
                 <slot name="JR_error">
                     <i class="ion-close-round" style="color: red;"></i>

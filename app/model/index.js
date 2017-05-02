@@ -5,7 +5,6 @@ const Sequelize = require("sequelize");
 const mysql = require("mysql");
 
 let db = {};
-
 const init_model = () => {
     let config, sequelize;
     // delete old model objects
@@ -22,13 +21,15 @@ const init_model = () => {
         if(db_conf["type"] == "sqlite"){
             sequelize = new Sequelize(db_conf['name'], null, null, {
                 dialect: "sqlite",
-                storage: utils.resolve(config["global"]["data_dir"], "sql", "ob-panel.sql")
+                storage: utils.resolve(config["global"]["data_dir"], "sql", "ob-panel.sql"),
+                logging: false
             });
         }else if(db_conf["type"] === "mysql"){
             sequelize = new Sequelize(db_conf['name'], db_conf["mysql_user"], db_conf["mysql_password"],{
                 dialect: "mysql",
                 host: db_conf["mysql_host"],
-                port: db_conf["mysql_port"]
+                port: db_conf["mysql_port"],
+                logging: false
             });
         }
     } catch(e){

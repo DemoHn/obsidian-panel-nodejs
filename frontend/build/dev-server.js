@@ -14,7 +14,7 @@ var webpackConfig = process.env.NODE_ENV === 'testing'
 var port = process.env.PORT || config.dev.port
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware
-var proxyTable = config.dev.proxyTable
+var proxyTable = config.dev.proxyTable;
 
 var app = express()
 var compiler = webpack(webpackConfig)
@@ -46,6 +46,12 @@ Object.keys(proxyTable).forEach(function (context) {
             options = { target: options };
         }
         app.use(proxyMiddleware(_context, options));
+    }else if(proxyTable[context]["filter"] != null){
+      var _filter = proxyTable[context]["filter"];
+        if (typeof options === 'string') {
+            options = { target: options };
+        }
+        app.use(proxyMiddleware(_filter, options));
     }else{
         if (typeof options === 'string') {
             options = { target: options };

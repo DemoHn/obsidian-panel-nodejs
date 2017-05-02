@@ -58,7 +58,7 @@ const LOGIN    = -1;
         }
         vs.then((response)=>{
             try{
-                let body = JSON.parse(response.body);
+                let body = response.body;
                 if(body.status == "success"){
                     if(typeof(on_success) == "function"){
                         on_success(body["info"]);
@@ -96,11 +96,11 @@ export default {
         "user-login" : UserLoginView,
         'port-settings' : PortSettingsView,
         "startup-finish" : StartupFinishView
-    },
+    }, 
     data(){
         return {
             "page_index" : REG_USER,
-            //lang
+            //langs
             "lang" : "",
             // root user
             "username" : "",

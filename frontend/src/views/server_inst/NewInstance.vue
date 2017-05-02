@@ -244,6 +244,7 @@
                     <button class="finish_btn" v-if="button_status === 0" @click="clk_create_instance">一切准备就绪，开始创建！</button>
                     <button class="finish_btn" v-else-if="button_status === 1" disabled><i class="fa fa-circle-o-notch fa-spin fa-fw"></i>&nbsp;&nbsp;&nbsp;正在检查配置...</button>
                     <button class="finish_btn" v-if="button_status === 2" @click="clk_create_instance">参数有错误，请修改后重试！</button>
+                </div>
             </li>
         </ul>
 

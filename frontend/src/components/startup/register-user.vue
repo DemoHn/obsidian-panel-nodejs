@@ -32,7 +32,7 @@
         <div class="error-msg" v-if="repeat_error">前后密码不一致！</div>
 
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" :disabled="!agree" @click="submit">下一步</md-button>
+            <md-button class="md-raised md-primary" :disabled="!agree" @click.native="submit">下一步</md-button>
         </div>
     </div>
 </template>
@@ -45,13 +45,9 @@
                 "email":"",
                 "password":"",
                 "repeat_password":"",
-                "hasi_username" : false,
                 "empty_username" : false,
                 "email_error": false,
                 "email_empty": false,
-                "password_error": false,
-                "repeat_error": false,
-                "agree" : true
             }
         },
         computed:{
@@ -107,6 +103,8 @@
                     "email" : this.email,
                     "password" : this.password
                 }
+
+                console.log(_v);
                 this.$emit("submit", _v);
             }
         },

@@ -61,7 +61,12 @@ app.use((req, res, next) => {
 });
 
 // start ftp_manager
-const ftp_manager = cp.fork(path.join(__dirname, "../ftp_manager"));
+let ftp_manager = undefined;
+
+// that means, this process is running main instance instead of independent modules
+if(process.argv[2] !== "-t"){
+    ftp_manager = cp.fork(path.join(__dirname, "../ftp_manager"));
+}
 
 // serve static resources
 require("./views")(app);

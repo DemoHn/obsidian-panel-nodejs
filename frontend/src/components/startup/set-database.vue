@@ -22,7 +22,7 @@
             </md-input-container>
 
             <div>
-                <md-button class="md-raised md-dense" type="button" v-on:click="test_connection" :disabled="!test_btn_enable">测试</md-button>
+                <md-button class="md-raised md-dense" type="button" v-on:click.native="test_connection" :disabled="!test_btn_enable">测试</md-button>
                 &nbsp;&nbsp;
                 <span style="color:red;display:inline-block;margin-top:12px;">
                     <span v-if="connection_result == 1">连接成功</span>
@@ -33,7 +33,7 @@
         </div>
 
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" :disabled="! finish_btn_enable" @click="submit">下一步</md-button>
+            <md-button class="md-raised md-primary" :disabled="! finish_btn_enable" @click.native="submit">下一步</md-button>
         </div>
     </div>
 </template>
@@ -63,7 +63,7 @@
         }
         vs.then((response)=>{
             try{
-                let body = JSON.parse(response.body);
+                let body = response.body;                
                 if(body.status == "success"){
                     if(typeof(on_success) == "function"){
                         on_success(body["info"]);
@@ -80,7 +80,7 @@
                         return ;
                     }
                 }
-            }catch(e){
+            }catch(e){                
                 if(typeof(on_fail) == "function"){
                     const error_code = 500;
                     on_fail(500);
@@ -98,7 +98,6 @@
         data(){
             return {
                 connection_result : null,
-                test_btn_enable: false,
                 finish_btn_enable : true,
                 db_type : "sqlite",
                 mysql_username :"",

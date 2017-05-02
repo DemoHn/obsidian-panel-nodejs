@@ -1,6 +1,8 @@
 // nodejs packages
 const os = require("os");
 const fs = require("fs");
+const cp = require("child_process");
+const path = require("path");
 const mkdirp = require("mkdirp");
 
 const app = require("./app").app;
@@ -139,14 +141,45 @@ const sync_model = () => {
     );
 }
 
-let rc = update_config() && check_config();
+const argv = process.argv;
+if(argv[2] === "-t"){
+    // run independent tools using child_process.fork
+    const module_name = argv[3];
+    argv.splice(0,4); // remove the first 4 items
+    const module_args = argv;
 
-if(rc === 1){
-    if(utils.get_startup_lock() === true){
-        // launch directly, without sync db model
-        launch_process();
-    }else{
-        // process `launch_process` is included in `sync_model`!
-        sync_model();
+    // for enclose application, we have to directly write down the directory of each module_args
+    // i.e.: such that `path.resolve(__dirname, "tools", module_name)` will not work!
+    const _downloader_module = path.resolve(__dirname, "tools/downloader");
+    const _pm2_module = path.resolve(__dirname, "tools/pm2");
+    const _unzip_module = path.resolve(__dirname, "tools/unzip");
+
+    try {
+        if(module_name === "downloader"){
+            cp.fork(_downloader_module, module_args);
+        }else if(module_name === "pm2"){
+            cp.fork(_pm2_module, module_args);
+        }else if(module_name === "unzip"){
+            cp.fork(_unzip_module, module_args);
+        }
+        
+    } catch (error) {
+        console.log(error);
+    }
+
+    return 0;
+}else{
+    // run main
+    let rc = update_config() && check_config();
+
+    if(rc === 1){
+        if(utils.get_startup_lock() === true){
+            // launch directly, without sync db model
+            launch_process();
+        }else{
+            // process `launch_process` is included in `sync_model`!
+            sync_model();
+        }
     }
 }
+

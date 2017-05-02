@@ -30,7 +30,7 @@ module.exports = {
               target: 'http://localhost:80',
               changeOrigin: true
           },
-          "/startup/":{
+          "/startup/**":{
               target: 'http://localhost:80',
               changeOrigin: true
           },
@@ -38,13 +38,18 @@ module.exports = {
               target: 'http://localhost:80',
               changeOrigin: true
           },
+          "__":{
+            filter: function(pathname, req){
+                return pathname.match('^/startup$');
+            },
+            target:"http://localhost:80"
+          },
           "_":{
               rule:["/static/js/**",
                     "/static/css/**",
                     "/static/fonts/**"
                    ],
               target:"http://localhost:80"
-
           }
       },
     // CSS Sourcemaps off by default because relative paths are "buggy"

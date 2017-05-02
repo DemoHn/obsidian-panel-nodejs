@@ -136,7 +136,13 @@ class WebSocket {
         }
         vs.then((response)=>{
             try{
-                let body = JSON.parse(response.body);
+                let body;
+                if(typeof response === "string"){
+                    body = JSON.parse(response.body);
+                }else{
+                    body = response.body;
+                }
+
                 if(body.status == "success"){
                     if(typeof(on_success) == "function"){
                         on_success(body["info"]);

@@ -67,7 +67,7 @@
     export default {
         data(){
             return {
-                count_down : 5,
+                count_down : 3,
             }
         },
         mounted(){

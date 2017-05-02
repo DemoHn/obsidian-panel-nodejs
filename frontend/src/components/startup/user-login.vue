@@ -20,7 +20,7 @@
         </div>
         <div style="text-align: right;">
             <md-checkbox id="remember_me" name="rem" v-model="remember_me" style="float:left;">&nbsp;记住密码</md-checkbox>
-            <md-button class="md-raised md-primary" :disabled="!enable_login" @click="login_submit">登录</md-button>
+            <md-button class="md-raised md-primary" :disabled="!enable_login" @click.native="login_submit">登录</md-button>
         </div>
     </div>
 </template>
@@ -50,7 +50,7 @@
         }
         vs.then((response)=>{
             try{
-                let body = JSON.parse(response.body);
+                let body = response.body;
                 if(body.status == "success"){
                     if(typeof(on_success) == "function"){
                         on_success(body["info"]);
@@ -86,8 +86,7 @@
                 error_type : null,
                 username : "",
                 password : "",
-                remember_me : false,
-                enable_login : false
+                remember_me : false
             }
         },
         computed:{
