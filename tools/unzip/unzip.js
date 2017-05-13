@@ -1,9 +1,8 @@
 const fs = require("fs");
-const targz = require('tar.gz');
-const unzip = require("unzip");
+const unzip = require("unzip2");
+const tar = require("tar");
 const mkdirp = require("mkdirp");
-
-var request = require('request');
+const zlib = require("zlib");
 
 module.exports = (target, dest, type) => {
     try {
@@ -17,20 +16,19 @@ module.exports = (target, dest, type) => {
         try {
             let target_in = fs.createReadStream(target);
             target_in.pipe(unzip.Extract({path : dest }));
+            return 0;
         } catch (error) {
             console.log(error);
             return -2;
         }
     }else if(type === "tar"){
-        let target_in = fs.createReadStream(target);
-        let dest_dir = targz().createWriteStream(dest);
-        
-        try{
-            target_in.pipe(dest_dir);
-            return 0;
-        }catch(err){
-            console.log(err);
-            // uncompress file fails!
+        try {
+            let target_in = fs.createReadStream(target);
+            target_in.pipe(zlib.createGunzip()).pipe(tar.x({
+                C: dest
+            }));
+        } catch (error) {
+            console.log(error);
             return -2;
         }
     }else{

@@ -2,6 +2,7 @@
 const os = require("os");
 const fs = require("fs");
 const cp = require("child_process");
+
 const path = require("path");
 const mkdirp = require("mkdirp");
 
@@ -17,7 +18,7 @@ const model = require("./app/model");
 // enclose will regard the config file as internal asset and include into the bundle by default.
 // Since we want to read config.yml from external filesystem, we use `process.cwd()` to read
 // config.yml dynamically.
-const config_yml = utils.resolve(process.cwd(), "config.yml");
+const config_yml = utils.resolve(utils.get_cwd(), "config.yml");
 const config_yml_sample = utils.resolve(__dirname, "config.yml.sample");
 
 const merge_dict = (dict_conf, dict_sample)=>{
@@ -110,7 +111,7 @@ const check_config = () => {
 
 const launch_process = () => {
     let config = utils.get_config();
-    // start process
+    
     let server_port = config["server"]["listen_port"];
     // start (listen) the process
     console.log("[INFO] Start panel!");
@@ -151,14 +152,14 @@ if(argv[2] === "-t"){
     // for enclose application, we have to directly write down the directory of each module_args
     // i.e.: such that `path.resolve(__dirname, "tools", module_name)` will not work!
     const _downloader_module = path.resolve(__dirname, "tools/downloader");
-    const _pm2_module = path.resolve(__dirname, "tools/pm2");
+    const _os_service_module = path.resolve(__dirname, "tools/os_service");
     const _unzip_module = path.resolve(__dirname, "tools/unzip");
 
     try {
         if(module_name === "downloader"){
             cp.fork(_downloader_module, module_args);
-        }else if(module_name === "pm2"){
-            cp.fork(_pm2_module, module_args);
+        }else if(module_name === "os_service"){
+            cp.fork(_os_service_module, module_args);
         }else if(module_name === "unzip"){
             cp.fork(_unzip_module, module_args);
         }

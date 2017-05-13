@@ -1,11 +1,11 @@
-## PM2 Tool Documentation
+## OS-Service Tool Documentation
 
 _Author: Nigshoxiz_   
 _Last Update: 02/05/2017_  
 
 1. Overview
 
-`PM2` is an advanced process monitor for Node.js applications. This tool is designed to monitor the whole panel.
+This tool is designed to register the executable `obsidian` ( or `obsidian.exe` on Windows ) as a system service.
 
 To run it, there are two methods:  
 
@@ -27,6 +27,6 @@ Another is to call it internally. The most advantage of this way is the ability 
 
     - `--command`  (necessary)  
     What to do next?
-    args: either `start`, `stop`, `debug`, `status`
-    e.g. : `--method=start  `
+    args: either `start`, `stop`, `debug`, `status`, `install`
+    e.g. : `--command=install`
 

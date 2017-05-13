@@ -29,10 +29,15 @@ mkdirp.sync(path.resolve(__dirname, "dist", "bin"));
 
 // 4. enclose
 let export_exe = "obsidian";
+let target_os = "linux";
+let node_version = "6";
 if(/^win/.test(os.platform()) === true){
     export_exe = "obsidian.exe";
+    target_os = "win";
 }
-cp.execSync(`enclose -v 6.3.1 -c .enclose.config.js -o ${export_exe} start-panel.js`, 
+
+// e.g: pkg -c package.json -t node6-win -o obsidian.exe start-panel.js
+cp.execSync(`pkg -c package.json -t node${node_version}-${target_os} -o ${export_exe} start-panel.js`, 
     {cwd: path.resolve(__dirname, ".."), stdio:[0,1,2]});
 
 // 5. copy node_sqlite3.node to binary dir
@@ -49,8 +54,20 @@ fs.copySync(sqlite3_node, path.resolve(__dirname, `../dist/bin/${sqlite3_node_di
 // 5.3 move obsidian(.exe) to dist/bin
 fs.renameSync(path.resolve(__dirname, `../${export_exe}`), path.resolve(__dirname, "../dist/bin/"+export_exe));
 
-// 6. copy config.yml
+
+// 6. copy os-specific binaries (scripts) to dist
+let os_name = "linux";
+if(os.platform() === "win32"){
+    os_name = "win";
+}
+let os_spec_dir = path.resolve(__dirname, os_name);
+for(let i=0;i<fs.readdirSync(os_spec_dir).length;i++){
+    let file_name = fs.readdirSync(os_spec_dir)[i];
+    fs.copySync(path.resolve(os_spec_dir, file_name), path.resolve(__dirname, "../dist/bin", file_name));
+}
+
+// 7. copy config.yml
 fs.copySync(path.resolve(__dirname, `../config.yml.sample`), path.resolve(__dirname, "../dist/bin/config.yml"));
 
-// 7. touch .startup.lck
+// 8. touch .startup.lck
 fs.writeFileSync(path.resolve(__dirname, "../dist/bin/.startup.lck"),"", {flag:"w+"});

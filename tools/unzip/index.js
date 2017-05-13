@@ -1,5 +1,6 @@
 const unzip = require("./unzip");
 const zip = require("./zip");
+const read = require("./read");
 
 // node-getopt
 let opt = require('../../utils/getopt').create([
@@ -19,6 +20,8 @@ if(method === "unzip"){
     unzip(target, dest, type);
 }else if(method === "zip"){
     zip(target, dest, type);
+}else if(method === "read"){
+    read(target, type);
 }else{
     console.log("no such option!");
     return -1;

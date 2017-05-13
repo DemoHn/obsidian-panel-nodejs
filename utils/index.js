@@ -5,6 +5,17 @@ const os   = require("os");
 const md5 = require("blueimp-md5");
 
 const _salt = Buffer.from([0x87, 0x93, 0xfb, 0x00, 0xfa, 0xc2, 0x88, 0xba, 0x24, 0x86, 0x98, 0x27, 0xba, 0xa8, 0xc6]);
+
+const _get_cwd = () => {
+    try {
+        fs.accessSync(path.join(process.cwd(), ".dev.lck"));
+    } catch (error) {
+        // if product mode
+        return path.dirname(process.execPath);        
+    }
+    // else dev mode
+    return process.cwd();
+};
 module.exports = {
     types : require("./types"),
     rtn : require("./rtn"),
@@ -53,9 +64,14 @@ module.exports = {
             return false;
         }
     },
+
+    get_cwd: ()=>{
+        return _get_cwd();
+    },
     // write & read global config of the whole panel
     get_config : (filename)=>{
-        let config_file = path.resolve(process.cwd(), "config.yml"); 
+        let _cwd = _get_cwd();
+        let config_file = path.resolve(_cwd, "config.yml"); 
         try{
             if(filename !== undefined){
                 config_file = filename;
@@ -80,7 +96,8 @@ module.exports = {
         }
     },
     dump_config : (conf, filename)=>{
-        let config_file = path.resolve(process.cwd(), "config.yml");
+        let _cwd = _get_cwd();
+        let config_file = path.resolve(_cwd, "config.yml");
 
         try{
             if(filename != undefined){
@@ -119,14 +136,16 @@ module.exports = {
     // in old python, this corresponds to the configuarion _RESTART_LOCK
     get_startup_lock: ()=>{
         try{
-            fs.accessSync(path.resolve(process.cwd(), ".startup.lck"));
+            let _cwd = _get_cwd();
+            fs.accessSync(path.resolve(_cwd, ".startup.lck"));
         } catch(err){
             return false;
         }
         return true;
     },
     set_startup_lock: (status)=>{
-        let lock_file = path.resolve(process.cwd(), ".startup.lck");
+        let _cwd = _get_cwd();
+        let lock_file = path.resolve(_cwd, ".startup.lck");
         if(status){
             // touch lock file
             fs.writeFileSync(lock_file, "");
