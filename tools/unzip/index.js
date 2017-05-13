@@ -21,7 +21,10 @@ if(method === "unzip"){
 }else if(method === "zip"){
     zip(target, dest, type);
 }else if(method === "read"){
-    read(target, type);
+    read(target, type, (list) => {
+        // output
+        console.log(list);
+    });
 }else{
     console.log("no such option!");
     return -1;
