@@ -33,7 +33,7 @@
                                     <img v-else-if="core_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
                                     <img v-else-if="core_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
                                     <img v-else-if="core_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
-                                    <div class="no-pic" v-else>暂无图片</div>
+                                    <div class="no-pic" v-else>暂无预览</div>
                                 </div>
 
                                 <div class="server_core_info">
@@ -71,6 +71,84 @@
 
                             <div class="add_button">
                                 <button class="btn btn-primary btn-md" @click="add_serv_core"><i class="ion-plus-round"></i>&nbsp;&nbsp;&nbsp;添加核心</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- integrated package -->
+            
+            <div class="col-md-6 col-lg-6">
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">整合包管理</h3>
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div v-if="int_pkg_status == 2">
+                            <load-error></load-error>
+                        </div>
+                        <div v-if="int_pkg_status == 1">
+                            <c-loading></c-loading>
+                        </div>
+                        <div v-if="int_pkg_status == 0">
+                            <div v-if="core_list.length == 0">
+                                <div class="core_nothing">这里空空如也 <br /> 点击下面的「添加」按钮以上传整合包</div>
+                            </div>
+                            <div class="core_list" v-for="(core_item,_index) in core_list">
+                                <div class="edit-button">
+                                    <a title="" data-placement="left" data-toggle="tooltip"  data-original-title="编辑" @click="edit_serv_core(_index)"><i class="ion-edit"></i></a>
+                                    <a title="" data-placement="left" data-toggle="tooltip" data-original-title="删除" @click="delete_serv_core(_index)"><i class="ion-close-round"></i></a>
+
+                                </div>
+                                <div class="server_core_avatar">
+                                    <img v-if="core_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
+                                    <img v-else-if="core_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
+                                    <img v-else-if="core_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
+                                    <img v-else-if="core_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
+                                    <div class="no-pic" v-else>暂无图片</div>
+                                </div>
+
+                                <div class="server_core_info">
+                                    <div class="list_title">
+                                        {{ core_item.file_name }}
+                                    </div>
+                                    <div class="list_row">
+                                        <div class="half">
+                                            <span class="ttl">类型: </span>
+                                            <span class="default-text" v-if="core_item.core_type == 'other'">其他</span>
+                                            <span class="text" v-else>{{ core_item.core_type }}</span>
+                                        </div><div class="half">
+                                            <span class="ttl">文件大小: </span>
+                                            <span class="text">{{ core_item.file_size }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="list_row">
+                                        <div class="half">
+                                            <span class="ttl">MC版本: </span>
+                                            <span class="text">{{ core_item.minecraft_version }}</span>
+                                        </div><div class="half">
+                                            <span class="ttl">文件版本: </span>
+                                            <span class="default-text" v-if="core_item.core_version ==''">未知</span>
+                                            <span class="text" v-else>{{ core_item.core_version }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="note" v-if="core_item.note === ''">
+                                        (无备注)
+                                    </div>
+                                    <div class="note" v-else>
+                                        {{ core_item.note }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="add_button">
+                                <button class="btn btn-primary btn-md" @click="add_int_pkg"><i class="ion-plus-round"></i>&nbsp;&nbsp;&nbsp;添加整合包</button>
                             </div>
                         </div>
                     </div>
@@ -165,6 +243,22 @@
                 </div>
             </div>
         </del-modal>
+
+        <!-- int_pkg add modal -->
+        <add-pkg-modal v-if="showAddPkgModal" @cancel="showAddPkgModal = false" @confirm="confirm_add_pkg">
+            <span slot="header">添加整合包</span>
+            <div slot="body">
+                <div>
+                    <c-upload-pkg
+                        @uploadFinish="closeAddFileModal"
+                        @allowUpload="onAllowUpload"
+                        ref="FileUploader"
+                        ></c-upload-pkg>
+                </div>
+            </div>
+            <span slot="cancel_text">取消</span>
+            <span slot="confirm_text">添加</span>
+        </add-pkg-modal>
     </section>
 </template>
 
@@ -180,6 +274,7 @@ import Loading from '../../components/c-loading.vue';
 import LoadError from '../../components/c-error.vue';
 import cModal from '../../components/c-modal.vue';
 import UploadFile from '../../components/server_core/upload-file.vue';
+import UploadPkg from '../../components/server_core/upload-pkg.vue';
 export default {
     components: {
         'c-loading': Loading,
@@ -187,13 +282,17 @@ export default {
         'edit-modal': cModal,
         'del-modal': cModal,
         'add-modal': cModal,
-        'c-upload-file' : UploadFile
+        'add-pkg-modal': cModal,
+        'c-upload-file' : UploadFile,
+        'c-upload-pkg': UploadPkg
     },
     name : "ServerCore",
     data(){
         return {
             core_list : [],
             status: LOADING,
+            // 整合包 Integrated Package
+            int_pkg_status: LOADING,
             edit_form:{
                 file_name: "",
                 core_type: 'vanilla',
@@ -213,7 +312,11 @@ export default {
             // add modal
             showAddModal: false,
             add_core_type: TYPE_UPLOAD,
-            enable_upload: false
+            enable_upload: false,
+
+            // add pkg modal
+            showAddPkgModal: false,
+            enable_int_pkg_upload: false
         }
     },
     methods: {
@@ -305,6 +408,11 @@ export default {
         on_load_error(data){
             this.status = ERROR;
         },
+
+        // add int_pkg modal
+        add_int_pkg(){
+            this.showAddPkgModal = true;
+        }
     },
     mounted() {
         this.aj_load_core_list();

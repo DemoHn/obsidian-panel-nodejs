@@ -20,7 +20,8 @@ const _append_dir = (dir_name, dir_type, file_size) => {
 
     if(dir_type === "File"){
         let last_item = dir_arr[dir_arr.length-1];
-        tree_iter[last_item] = file_size;
+        //tree_iter[last_item] = file_size;
+        tree_iter[last_item] = 0;
     }else if(dir_type === "Directory"){
         let last_item = dir_arr[dir_arr.length-1];
         if(last_item != "")

@@ -395,10 +395,79 @@ module.exports = {
             console.error(err);
             res.error(500);
         });
-
     },
-    // java_binary
 
+    // params:
+    // @replace : <old pkg path>
+    // replace the old int_pkg to new int_pkg
+    //
+    // returns:
+    // @path: the stored path of uploaded file
+    // @file_name: the original name of uploaded file. Used for the default value of package name
+    save_int_pkg_data: (req, res, next) => {
+        // get uploaded file info
+        const ori_file_name = req.file.originalname;
+        const replace = req.body.replace;
+    
+        const data_dir = utils.get_config()["global"]["data_dir"];
+        const upload_dir = utils.resolve(data_dir, "cores");
+        
+        if(replace != null && replace != ""){
+            try {
+                fs.unlinkSync(utils.resolve(upload_dir, replace));    
+            } catch (error) {
+                // I don't core if unlink old file raises an error!
+            }
+        }
+
+        let rtn_data = {
+            "path": req.file.filename,
+            "file_name": ori_file_name
+        };
+        res.success(rtn_data);
+    },
+
+    // queries:
+    // @file : <string>
+    // file name to read (notice: here, the file_name is a 32-byte random ascii string)
+    //
+    // returns:
+    // <string> directory info (see ref for details)
+    read_bundle_directory: (req, res, next) => {
+        const file = req.query.file;
+
+        const data_dir = utils.get_config()["global"]["data_dir"];
+        const upload_dir = utils.resolve(data_dir, "cores");
+
+        if(file == null || file == ""){
+            res.error(406);
+        }else{
+            // execute tool
+            const __target = utils.resolve(upload_dir, file);
+            const cmd_args = `--method=read --target=${__target} --type=zip`;
+
+            // launch downloader process!
+            const unzip_module = utils.resolve(
+                __dirname,
+                "../../tools/unzip"
+            );
+            let proc = cp.fork(unzip_module, cmd_args.split(" "), {silent: true});
+
+            // get result from stdout
+            proc.stdout.on('data', (buf) => {
+                let dir_info = buf.toString().trim();
+                res.success(dir_info);
+            });
+        }
+    },
+    /* 
+     *
+     * 
+     *  java_binary 
+     * 
+     * 
+     * 
+     * */
     // get java donwload list
     // no params
     get_java_download_list : (req, res, next) => {
@@ -523,7 +592,6 @@ module.exports = {
                 "../../tools/downloader"
             );
 
-            console.log(downloader_module);
             let proc = cp.fork(downloader_module, cmd_args.split(" "));
 
             // after that, handover consecutive operations to event hooks!

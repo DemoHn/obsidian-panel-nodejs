@@ -277,6 +277,7 @@ export default {
     padding: 0;
     text-align: center;
     height: auto;
+    min-height: 12rem;
     width: 100%;
     background-color: transparent;
     margin-top: 10px;

@@ -2,7 +2,7 @@
     <div class="loading-mask">
         <div class="__child">
             <div class="loading-text loading-face">☹</div>
-            <div class="loading-text">&nbsp;Error!</div>
+            <div class="loading-text">{{ hint }}</div>
 
         </div>
     </div>
@@ -10,25 +10,32 @@
 
 <script>
     export default {
+        props: {
+            hint: {
+                "default" : "Error!"
+            }
+        },
         name:"load-error"
     }
 </script>
 
 <style scoped>
 div.loading-mask{
-    min-height: 12rem;
+    height: 100%;
     width: 100%;
     text-align: center;
-    vertical-align: middle;
+    display:table;
     color: #a3a3a3;
+    background-color: rgba(213, 219, 230, 0.15);
 }
 
 div.loading-mask div.__child{
-    margin-top: 2rem;
+    display: table-cell;
+    vertical-align: middle;
 }
 
 div.loading-mask div.loading-text{
-    font-size: 2rem;
+    font-size: 1.6rem;
 }
 
 div.loading-mask div.loading-face{

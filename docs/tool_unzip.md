@@ -27,7 +27,7 @@ Another is to call it internally. The most advantage of this way is the ability 
 
     - `--method`  (necessary)  
     Whether a user is willing to extract tarballs or bundle files?  
-    Operations are Either `unzip` or `zip`.   
+    Operations are Either `unzip` or `zip` or `read`.   
     e.g. : `--method=zip`
 
     - `--target` (necessary)  

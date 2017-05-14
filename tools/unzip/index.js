@@ -23,7 +23,7 @@ if(method === "unzip"){
 }else if(method === "read"){
     read(target, type, (list) => {
         // output
-        console.log(list);
+        console.log(JSON.stringify(list));
     });
 }else{
     console.log("no such option!");
