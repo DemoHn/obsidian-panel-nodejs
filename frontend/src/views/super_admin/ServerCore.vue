@@ -93,56 +93,45 @@
                         <div v-if="int_pkg_status == 2">
                             <load-error></load-error>
                         </div>
-                        <div v-if="int_pkg_status == 1">
+                        <div v-if="int_pkg_status == 0">
                             <c-loading></c-loading>
                         </div>
-                        <div v-if="int_pkg_status == 0">
-                            <div v-if="core_list.length == 0">
+                        <div v-if="int_pkg_status == 1">
+                            <div v-if="int_pkg_list.length == 0">
                                 <div class="core_nothing">这里空空如也 <br /> 点击下面的「添加」按钮以上传整合包</div>
                             </div>
-                            <div class="core_list" v-for="(core_item,_index) in core_list">
+                            <div class="core_list" v-for="(int_pkg_item,_index) in int_pkg_list">
                                 <div class="edit-button">
                                     <a title="" data-placement="left" data-toggle="tooltip"  data-original-title="编辑" @click="edit_serv_core(_index)"><i class="ion-edit"></i></a>
                                     <a title="" data-placement="left" data-toggle="tooltip" data-original-title="删除" @click="delete_serv_core(_index)"><i class="ion-close-round"></i></a>
-
                                 </div>
                                 <div class="server_core_avatar">
-                                    <img v-if="core_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
-                                    <img v-else-if="core_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
-                                    <img v-else-if="core_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
-                                    <img v-else-if="core_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
+                                    <img v-if="int_pkg_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
+                                    <img v-else-if="int_pkg_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
+                                    <img v-else-if="int_pkg_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
+                                    <img v-else-if="int_pkg_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
                                     <div class="no-pic" v-else>暂无图片</div>
                                 </div>
 
                                 <div class="server_core_info">
                                     <div class="list_title">
-                                        {{ core_item.file_name }}
+                                        {{ int_pkg_item.package_name }}
                                     </div>
                                     <div class="list_row">
                                         <div class="half">
-                                            <span class="ttl">类型: </span>
-                                            <span class="default-text" v-if="core_item.core_type == 'other'">其他</span>
-                                            <span class="text" v-else>{{ core_item.core_type }}</span>
-                                        </div><div class="half">
                                             <span class="ttl">文件大小: </span>
-                                            <span class="text">{{ core_item.file_size }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="list_row">
-                                        <div class="half">
-                                            <span class="ttl">MC版本: </span>
-                                            <span class="text">{{ core_item.minecraft_version }}</span>
+                                            <span class="text">{{ int_pkg_item.file_size }}</span>
                                         </div><div class="half">
-                                            <span class="ttl">文件版本: </span>
-                                            <span class="default-text" v-if="core_item.core_version ==''">未知</span>
-                                            <span class="text" v-else>{{ core_item.core_version }}</span>
+                                            <span class="ttl">MC版本: </span>
+                                            <span class="text">{{ int_pkg_item.minecraft_version }}</span>
                                         </div>
                                     </div>
-                                    <div class="note" v-if="core_item.note === ''">
+                                    
+                                    <div class="note" v-if="int_pkg_item.note === ''">
                                         (无备注)
                                     </div>
                                     <div class="note" v-else>
-                                        {{ core_item.note }}
+                                        {{ int_pkg_item.note }}
                                     </div>
                                 </div>
                             </div>
@@ -245,14 +234,18 @@
         </del-modal>
 
         <!-- int_pkg add modal -->
-        <add-pkg-modal v-if="showAddPkgModal" @cancel="showAddPkgModal = false" @confirm="confirm_add_pkg">
+        <add-pkg-modal 
+            v-if="showAddIntPkgModal" 
+            @cancel="showAddIntPkgModal = false" 
+            @confirm="confirm_add_pkg"
+            >
             <span slot="header">添加整合包</span>
             <div slot="body">
                 <div>
                     <c-upload-pkg
                         @uploadFinish="closeAddFileModal"
                         @allowUpload="onAllowUpload"
-                        ref="FileUploader"
+                        ref="PackageUploader"
                         ></c-upload-pkg>
                 </div>
             </div>
@@ -290,6 +283,7 @@ export default {
     data(){
         return {
             core_list : [],
+            int_pkg_list: [],
             status: LOADING,
             // 整合包 Integrated Package
             int_pkg_status: LOADING,
@@ -313,10 +307,14 @@ export default {
             showAddModal: false,
             add_core_type: TYPE_UPLOAD,
             enable_upload: false,
-
+            /* integrated package */
             // add pkg modal
-            showAddPkgModal: false,
-            enable_int_pkg_upload: false
+            showAddIntPkgModal: false,
+            enable_int_pkg_upload: false,
+
+            // delete pkg modal
+            _delete_pkg_index: null,
+            _delete_pkg_name: null
         }
     },
     methods: {
@@ -324,6 +322,11 @@ export default {
         aj_load_core_list(){
             let ws = new WebSocket();
             ws.ajax("GET",'/super_admin/core/get_core_file_info', this.init_core_list, this.on_load_error);
+        },
+
+        aj_load_int_pkg_list(){
+            let ws = new WebSocket();
+            ws.ajax("GET",'/super_admin/core/get_int_pkg_info', this.init_int_pkg_list, this.on_load_int_pkg_error);
         },
         // click methods
         edit_serv_core(index){
@@ -339,7 +342,6 @@ export default {
         },
         // on confirm
         confirm_edit(){
-            let app = this.$parent.$parent;
             const ajax_data = {
                 "file_name" : this.edit_form.file_name,
                 "file_version" : this.edit_form.core_version,
@@ -399,23 +401,52 @@ export default {
             this.aj_load_core_list();
             this.showAddModal = false;
         },
-        // init list
+        // init list (cores & integrated packages)
         init_core_list(data){
             this.status = SUCCESS;
             this.core_list = data;
+        },
+
+        init_int_pkg_list(data){
+            this.int_pkg_status = SUCCESS;
+            this.int_pkg_list = data;
         },
 
         on_load_error(data){
             this.status = ERROR;
         },
 
+        on_load_int_pkg_error(data){
+            this.status = ERROR;
+        },
+
         // add int_pkg modal
         add_int_pkg(){
-            this.showAddPkgModal = true;
+            this.showAddIntPkgModal = true;
+        },
+
+        confirm_add_pkg(){
+            let ws = new WebSocket();
+            let v = this.$refs.PackageUploader;
+
+            let payload = {
+                file: v.latest_stored_filename,
+                exec_jar: v.exec_jar,
+                package_name: v.package_bundle_name,
+                minecraft_version: v.minecraft_version,
+                note: v.note
+            };
+
+            ws.ajax("POST", `/super_admin/core/add_integrated_package`, payload, (msg) => {
+                console.log(msg);
+            }, (code) => {
+               // TODO
+            });    
         }
     },
     mounted() {
         this.aj_load_core_list();
+        this.aj_load_int_pkg_list();
     }
 }
 </script>

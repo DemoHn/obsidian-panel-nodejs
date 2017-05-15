@@ -396,7 +396,49 @@ module.exports = {
             res.error(500);
         });
     },
+    // get all data of integrated pakcages
+    get_all_integrated_packages: (req, res) => {
+        const IntegratedPackage = model.get("IntegratedPackage");
 
+        const _filesize_format = (size) => {
+            if(size > 1e9){
+                return `${(size/1e9).toFixed(1)} G`;
+            }else if(size > 1e6){
+                return `${(size/1e6).toFixed(1)} M`;
+            }else if(size > 1e3){
+                return `${(size/1e3).toFixed(1)} K`;
+            }else{
+                return `${(size).toFixed(1)} B`;
+            }
+        }
+
+        let _model_arr = [];
+        // get all cores
+        IntegratedPackage.findAll().then(
+            (data)=>{
+                if(data == null){
+                    res.success(_model_arr);
+                    return ;
+                }
+                for(let i=0;i<data.length;i++){
+                    let item = data[i];
+                    let _model = {
+                        "pkg_id" : item.pkg_id,
+                        "package_name" : item.package_name,
+                        "minecraft_version" : item.minecraft_version,
+                        "file_size" : _filesize_format(item.file_size),
+                        "note" : item.note
+                    };
+                    _model_arr.push(_model);
+                }
+                res.success(_model_arr);
+            },
+            (error)=>{
+                console.error(error);
+                res.error(500);
+            }
+        );
+    },
     // params:
     // @replace : <old pkg path>
     // replace the old int_pkg to new int_pkg
@@ -460,11 +502,91 @@ module.exports = {
             });
         }
     },
+
+    // after all preparation, it's time to add this package into database!
+    // params
+    // @file: stored file name
+    // @exec_jar: executable jar location (relative to the zip file)
+    // @package_name: package name
+    // @minecraft_version: MC version
+    // @note: additional note
+    add_integrated_package: (req, res, next) => {
+        const IntegratedPackage = model.get("IntegratedPackage");
+        
+        const data_dir = utils.get_config()["global"]["data_dir"];
+        const upload_dir = utils.resolve(data_dir, "cores");
+
+        // all params
+        const file = req.body.file,
+              exec_jar = req.body.exec_jar,
+              package_name = req.body.package_name,
+              minecraft_version = req.body.minecraft_version,
+              note = req.body.note;
+        
+        // check all values
+        // 1. if file is null
+        if(file == null || file == ""){
+            res.error(406);
+            return ;
+        }
+        // 2. if package name is null
+        if(package_name == null || package_name == ""){
+            res.error(406);
+            return ;
+        }
+        // 3. exec_jar shall be started with "/", and not ended with "/"
+        // e.g. [valid] /server.jar
+        // e.g. [invalid] kcaldron.jar
+        // e.g. [invalid] /bin/something.jar/
+        if(exec_jar == null || exec_jar == ""){
+            res.error(406);
+            return ;
+        }else if(exec_jar[0] != "/" || exec_jar[exec_jar.length-1] == "/"){
+            res.error(406);
+            return ;
+        }
+
+        // 4. initialize other variables
+        if(note == null){
+            note = "";
+        }
+
+        if(minecraft_version == null){
+            minecraft_version = "";
+        }
+
+        let file_path = utils.resolve(upload_dir, file);
+        // stat file and ready to add package into db
+        fs.stat(file_path, (err, stat) => {
+            if(err){
+                // mostly because of file not found!
+                res.error(407);
+                return ;
+            }else{
+                const file_size = stat.size;
+                let _exec_jar = exec_jar.substr(1);
+
+                IntegratedPackage.create({
+                    file_size: file_size,
+                    file_path : file_path,
+                    file_uploader: req._uid,
+                    create_time: new Date(),
+                    exec_jar: _exec_jar,
+                    minecraft_version: minecraft_version,
+                    note: note,
+                    package_name: package_name
+                }).then((data)=>{
+                    res.success(200);
+                },(err) => {
+                    console.log(err);
+                    res.error(406);
+                })
+            }
+        });
+    },
     /* 
-     *
-     * 
-     *  java_binary 
-     * 
+     *     
+     * java_binary 
      * 
      * 
      * */

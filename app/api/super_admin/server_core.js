@@ -37,8 +37,13 @@ router.get("/delete_core_file/:core_file_id", core_ctrl.delete_core_file);
 // upload & save core file
 router.post("/upload_core_file", upload.single('files'), core_ctrl.save_core_file_data);
 
+// integrated packages
+router.get("/get_int_pkg_info", core_ctrl.get_all_integrated_packages);
+
 // upload integrated package （上传整合包）
 router.post("/upload_integrated_package", upload.single('files'), core_ctrl.save_int_pkg_data);
 
 router.get("/read_bundle_directory", core_ctrl.read_bundle_directory);
+
+router.post("/add_integrated_package", core_ctrl.add_integrated_package);
 module.exports = router;

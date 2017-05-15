@@ -119,6 +119,7 @@ const UPLOADING = 0;
 const UPLOAD_SUCCESS = 1;
 const UPLOAD_FAIL = 2;
 
+let ws = new WebSocket();
 
 export default{
     name: "upload-pkg",
@@ -256,7 +257,6 @@ export default{
         },
 
         readBundleDirectory(){
-            let ws = new WebSocket();
             let v = this;
 
             let file_name = this.latest_stored_filename;
