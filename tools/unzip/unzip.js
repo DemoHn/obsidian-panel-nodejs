@@ -1,36 +1,26 @@
 const fs = require("fs");
-const unzip = require("unzip2");
-const tar = require("tar");
+const os = require("os");
+const cp = require("child_process");
+const path = require("path");
 const mkdirp = require("mkdirp");
-const zlib = require("zlib");
 
 module.exports = (target, dest, type) => {
-    try {
-        mkdirp.sync(dest);    
-    } catch (error) {
-        console.log(error);
-        return -3;
+    let exec_name;
+    if(/^win/.test(os.platform())){
+        exec_name = "7za.exe";
+    }else{
+        exec_name = "./7za";
     }
-    
-    if(type === "zip"){
-        try {
-            let target_in = fs.createReadStream(target);
-            target_in.pipe(unzip.Extract({path : dest }));
-            return 0;
-        } catch (error) {
-            console.log(error);
-            return -2;
-        }
-    }else if(type === "tar"){
-        try {
-            let target_in = fs.createReadStream(target);
-            target_in.pipe(zlib.createGunzip()).pipe(tar.x({
-                C: dest
-            }));
-        } catch (error) {
-            console.log(error);
-            return -2;
-        }
+
+    if(type === "zip" || type === "tar"){
+        let cmd = `${exec_name} x ${target} -o${dest} -ao`; // extract command          
+        let proc = cp.exec(cmd, (err, stdout, stderr) => {
+            console.log(stdout);            
+        });
+
+        proc.on("exit", (code)=> {            
+            return code;
+        })
     }else{
         console.log(`no such --type option '${type}' !`);
         return -1;

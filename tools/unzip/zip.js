@@ -1,29 +1,26 @@
 const fs = require("fs");
-const archiver = require("archiver");
-const zlib = require("zlib");
+const os = require("os");
+const cp = require("child_process");
+const path = require("path");
 const mkdirp = require("mkdirp");
 
 module.exports = (target, dest, type) => {
-    
-    if(type === "zip" || type === "tar"){
-        const output = fs.createWriteStream(dest);
-        const archive = archiver(type);
+    let exec_name;
+    if(/^win/.test(os.platform())){
+        exec_name = "7za.exe";
+    }else{
+        exec_name = "./7za";
+    }
 
-        output.on('close', function() {
-            console.log("[zip] " + archive.pointer() + ' total bytes');
-            console.log('[zip] archiver has been finalized and the output file descriptor has closed.');
+    if(type === "zip" || type === "tar"){
+        let cmd = `${exec_name} a ${dest} ${target}${path.sep}*`;        
+        let proc = cp.exec(cmd, (err, stdout, stderr) => {
+            console.log(stdout);            
         });
 
-        if(type === "zip"){
-            archive.pipe(output);
-        }else{
-            archive.pipe(zlib.createGzip()).pipe(output);
-        }
-    
-        archive.directory(target, false);
-        archive.finalize();
-
-        return 0;
+        proc.on("exit", (code)=> {            
+            return code;
+        })
     }else{
         console.log(`no such --type option '${type}' !`);
         return -1;

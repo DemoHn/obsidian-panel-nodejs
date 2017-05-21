@@ -1,15 +1,15 @@
 const fs = require("fs");
-const unzip = require("unzip2");
-const tar = require("tar");
+const os = require("os");
+const path = require("path");
 const mkdirp = require("mkdirp");
-const zlib = require("zlib");
+const cp = require("child_process");
 
 // read file contents in the target
 let dir_tree = {};
 
 const _append_dir = (dir_name, dir_type, file_size) => {
     // init
-    let dir_arr = dir_name.split("/");
+    let dir_arr = dir_name.split(path.sep);
     let tree_iter = dir_tree;
     for(let i=0;i<dir_arr.length-1;i++){
         if(tree_iter[ dir_arr[i] ] === undefined){
@@ -31,23 +31,56 @@ const _append_dir = (dir_name, dir_type, file_size) => {
 
 
 module.exports = (target, type, callback) => {
-    if(type === "zip"){
-        let target_in = fs.createReadStream(target);
+    if(type === "zip" || type === "tar"){
+        let exec_name;
+        if(/^win/.test(os.platform())){
+            exec_name = "7za.exe";
+        }else{
+            exec_name = "./7za";
+        }
 
-        target_in.pipe(unzip.Parse()).on('entry', (entry) => {
-            _append_dir(entry.path, entry.type, entry.size);
-            entry.autodrain();
-        }).on('close', ()=> {
-            callback(dir_tree);
+        let proc = cp.exec(`${exec_name} l ${target}`, (err, stdout, stderr) => {
+            if(stdout != ""){
+                let stdout_arr = stdout.split(/(\r?\n)/);
+                for(let line in stdout_arr) {
+                    if(/^\d\d\d\d/.test(stdout_arr[line])){
+                        let line_arr = stdout_arr[line].split(" ");                    
+                        let _attr, _dir;
+                        // filtering
+                        if(line_arr.length > 5){
+                            let _index = 0;
+                            for(let item in line_arr){
+                                if(line_arr[item] == "" || line_arr[item] == null){
+                                    continue;
+                                }else{                                    
+                                    if(_index == 2){
+                                        _attr = line_arr[item];
+                                    }else if(_index == 5){
+                                        _dir = line_arr[item];                                        
+                                    }
+                                    _index += 1;
+                                }
+                            }
+                        }    
+                        //console.log(`${_attr} ${_dir}`);
+                        if(/^D/.test(_attr)){
+                            _append_dir(_dir, "Directory", null);
+                        }else if(/A$/.test(_attr)){
+                            _append_dir(_dir, "File", null);
+                        }
+                    }
+                }                
+                callback(dir_tree);
+            }            
         });
 
-    }else if(type === "tar"){
-        let target_in = fs.createReadStream(target);
-        target_in.pipe(zlib.createGunzip()).pipe(tar.list()).on('entry', (entry)=>{
-            _append_dir(entry.path, entry.type, entry.size);
-        }).on('end', ()=>{
-            callback(dir_tree);
-        });
+        proc.on("exit", (code)=>{
+            // according to 7z's doc, when return code is 0, it works correctly 
+            // but when code > 0, that means there're some errors;
+            if(code != 0){
+                callback(code);
+            }            
+        })
     }else{
         console.log(`no such --type option '${type}' !`);
         return -1;

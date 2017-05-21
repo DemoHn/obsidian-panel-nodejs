@@ -1,17 +1,10 @@
 <template lang="html">
     <div class="edit_model_content">
-    <div class="box box-default box-solid">
-        <div class="box-header with-border">
-            <h4 class="box-title">1. 上传整合包</h4>
-            <div class="box-tools pull-right">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
-            </div>
-              <!-- /.box-tools -->
-        </div>
-        <!-- /.box-header -->
-        <div class="box-body" style="display: block;">
+    <drop-box ref="step01">
+        <div slot="title">1. 上传整合包</div>
+        <div slot="body">
             <span class="des">整合包是一个已经拥有全部配置、插件及MOD的服务器压缩包。用家可以直接以之为模板创建服务器。
-            <b>注：目前只支持zip格式的压缩包。</b>
+                <b>注：目前只支持zip格式的压缩包。</b>
             </span>
             <div class="form_group">
                 <div class="form_label">
@@ -28,8 +21,7 @@
                         :events = 'cbEvents'
                         :request-options = "reqopts"
                         @onAdd = "onAddItem"
-                        ></vue-file-upload>
-                    </div>
+                        ></vue-file-upload>                    
                 </div>
             </div>
 
@@ -42,15 +34,10 @@
                         v-if="show_progress_bar"></progress-bar>
             </div>
         </div>
-    
-    <div class="box box-default box-solid collapsed-box">
-        <div class="box-header with-border">
-            <h4 class="box-title">2. 选择核心</h4>
-            <div class="box-tools pull-right">
-                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
-            </div>
-        </div>
-        <div class="box-body">
+    </drop-box>
+    <drop-box ref="step02">
+        <div slot="title">2. 选择核心</div>
+        <div slot="body">
             <span class="des">核心文件为用于运行服务器的可执行文件，一般以jar格式为主。用家需要选择核心文件相对于此整合包的位置。
             </span>
             <div class="form_group small-margin">
@@ -66,16 +53,11 @@
                 @file_click="changeExecJar"
             ></tree-view>
         </div>
-    </div>
+    </drop-box>
 
-    <div class="box box-default box-solid collapsed-box">
-        <div class="box-header with-border">
-            <h4 class="box-title">3. 整合包信息</h4>
-            <div class="box-tools pull-right">
-                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i></button>
-            </div>
-        </div>
-        <div class="box-body">
+    <drop-box ref="step03">
+        <div slot="title">3. 整合包信息</div>
+        <div slot="body">
             <div class="form_group">
                 <div class="form_label">
                     整合包名称：
@@ -105,13 +87,15 @@
                 </div>
             </div>
         </div>
-    </div>
+    </drop-box>
+
     </div>
 </template>
 
 <script>
 import VueFileUpload from 'vue-file-upload';
 import ProgressBar from './progress-bar.vue';
+import CDropBox from '../c-drop-box.vue';
 import TreeView from "./tree-view.vue";
 import WebSocket from '../../lib/websocket.js';
 
@@ -174,7 +158,7 @@ export default{
             show_progress_bar : false,
             progress_bar_ratio : 0.0,
             progress_bar_status: UPLOADING,
-
+            
             // package info
             // package_name = <package_bundle_name>-<minecraft_version>
             package_bundle_name: "",
@@ -210,14 +194,15 @@ export default{
     },
     methods:{
         onAddItem(files){
+            // reset other values
+            this.resetForm();
             this.file = files[files.length-1];
-            this.show_progress_bar = true;
 
             if(this.latest_stored_filename != null)
                 this.reqopts["formData"]["replace"] = this.latest_stored_filename;
-
-            // reset other values
-            this.resetForm();
+            
+            this.show_progress_bar = true;
+            // update dropbox's height            
             this.file.upload();
         },
         // used when showing the modal
@@ -279,6 +264,7 @@ export default{
     },
     components:{
         'vue-file-upload': VueFileUpload,
+        'drop-box': CDropBox,
         'progress-bar' : ProgressBar,
         'tree-view': TreeView
     },
@@ -326,7 +312,8 @@ div.error-hint{
 }
 
 div.progress-bar-frame{
-    padding:0 1rem;
+    padding:0 0 !important;
+    margin:0 !important;
 }
 
 input.input-file-name{

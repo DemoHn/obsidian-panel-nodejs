@@ -69,11 +69,11 @@ module.exports = {
         return _get_cwd();
     },
     // write & read global config of the whole panel
-    get_config : (filename)=>{
+    get_config : (filename, replace)=>{
         let _cwd = _get_cwd();
         let config_file = path.resolve(_cwd, "config.yml"); 
         try{
-            if(filename !== undefined){
+            if(filename != null){
                 config_file = filename;
             }
 
@@ -83,10 +83,14 @@ module.exports = {
                 return null;
             }else{
                 let $root_dir = os.homedir();
+                let $home_dir = path.normalize(path.resolve(_get_cwd(), ".."));
                 let $tmp_dir  = os.tmpdir();
 
-                conf_str = conf_str.replace(/\$ROOT_DIR\$/g, $root_dir);
-                conf_str = conf_str.replace(/\$TMP_DIR\$/g, $tmp_dir);
+                if(replace === true || replace == null){
+                    conf_str = conf_str.replace(/\$ROOT_DIR\$/g, $root_dir);
+                    conf_str = conf_str.replace(/\$TMP_DIR\$/g, $tmp_dir);
+                    conf_str = conf_str.replace(/\$HOME_DIR\$/g, $home_dir);
+                }   
             }
             let doc = yaml.safeLoad(conf_str);
             return doc;
@@ -95,6 +99,7 @@ module.exports = {
             throw Error(`load config file '${config_file}' failed!`);
         }
     },
+
     dump_config : (conf, filename)=>{
         let _cwd = _get_cwd();
         let config_file = path.resolve(_cwd, "config.yml");

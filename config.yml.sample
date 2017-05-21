@@ -1,6 +1,6 @@
 global:
-  log_file: $ROOT_DIR$/ob-panel.log
-  data_dir: $ROOT_DIR$/ob-panel
+  log_file: $HOME_DIR$/ob-panel.log
+  data_dir: $HOME_DIR$/data
   zhao: 1
   lang: zh-CN
 db:

@@ -11,11 +11,7 @@ let options = opt.options;
 const command = options.command;
 
 const return_result = (command, data) => {
-  const model = {
-    "command" : command,
-    "data" : data
-  };
-  console.log(JSON.stringify(model));
+  console.log(`${command} ${data}`);
 }
 
 if (os.platform() === "win32") {
@@ -42,13 +38,36 @@ if (os.platform() === "win32") {
     });
 
   } else if (command === "start") {
-    cp.exec(`${nssm_dir} start ${service_name} ${exec_dir}`, (err, stdout, stderr) => {
-      if(stderr != null && stderr != ""){
-        return_result("start", -1);
+    // get status
+    const _start_panel = () => {
+      cp.exec(`${nssm_dir} start ${service_name} ${exec_dir}`, (err, stdout, stderr) => {
+        if(stderr != null && stderr != ""){
+          return_result("start", -1);
+        }else{
+          return_result("start", 0);
+        }
+      });  
+    }
+
+    const _install_panel = (callback_success, callback_fail) => {
+      cp.exec(`${nssm_dir} install ${service_name} ${exec_dir}`, (err, stdout, stderr) => {
+        if(stderr != null && stderr != ""){
+          callback_fail();          
+        }else{
+          callback_success();
+        }
+      });  
+    }
+    
+    cp.exec(`${nssm_dir} status ${service_name}`, (err, stdout, stderr) => {
+      if(stderr.indexOf("Can't open service") >= 0){
+        // first install, then start panel
+        _install_panel(_start_panel , () => { return_result("start", -1); });   
       }else{
-        return_result("start", 0);
+        _start_panel();
       }
     });
+    
   } else if (command === "stop") {
     cp.exec(`${nssm_dir} stop ${service_name} ${exec_dir}`, (err, stdout, stderr) => {
       if(stderr != null && stderr != ""){
@@ -61,11 +80,17 @@ if (os.platform() === "win32") {
     cp.exec(`${nssm_dir} status ${service_name}`, (err, stdout, stderr) => {
       // stopped || running
         if(stderr != null && stderr != ""){
-          return_result("status", -1);
-        }else if(stdout.indexOf("SERVICE_STOPPED")){
+          if(stderr.indexOf("Can't open service") >= 0){
+              return_result("status", "not_installed");
+          }else{
+              return_result("status", -1);
+          }          
+        }else if(stdout.indexOf("SERVICE_STOPPED") >= 0){
           return_result("status", "stopped");
-        }else if(stdout.indexOf("SERVICE_RUNNING")){
+        }else if(stdout.indexOf("SERVICE_RUNNING") >= 0){
           return_result("status", "running");
+        }else if(/Can't open service/.test(stderr)){
+          return_result("status", "not_installed");
         }else{
           return_result("status","stopped");
         }

@@ -24,7 +24,7 @@ const create_database = (config, callback) => {
 };
 module.exports = {
     set_port_config: (req, res, next) => {
-        let config = utils.get_config();
+        let config = utils.get_config(null, false);
 
         if(req.body.app_port != null){ // or undefined
             config["server"]["listen_port"] = parseInt(req.body.app_port);
@@ -40,7 +40,7 @@ module.exports = {
     },
 
     set_db_config: (req, res, next) => {
-        let config = utils.get_config();
+        let config = utils.get_config(null, false); // 'false' means not replace (expand) $HOME_DIR$ etc. with actual directory name
 
         const body = req.body;
         const req_data = {

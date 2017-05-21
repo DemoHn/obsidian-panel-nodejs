@@ -60,7 +60,8 @@ const check_config = () => {
         config = utils.get_config();
         log_file = config['global']['log_file'];
         data_dir = config['global']['data_dir'];
-
+        
+        // mkdir -p ${data_dir}
         mkdirp.sync(data_dir);
         // == touch ${log_file}
         utils.write(log_file, "");
