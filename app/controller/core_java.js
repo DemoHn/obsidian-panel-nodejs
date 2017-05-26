@@ -62,7 +62,7 @@ class JavaBinaryPool {
             cpy_tasks[item] = {
                 "link": this.tasks[item]["link"],
                 "status": this.tasks[item]["status"],
-                "progress": this.tasks[item]["progress"]
+                "progress": thisdtasks[item]["progress"]
             };
         }
 
@@ -83,6 +83,23 @@ const _query_core_file_id = (res, core_file_id) => {
     const ServerCore = model.get("ServerCore");
     return new Promise((resolve, reject) => {
         ServerCore.findOne({where: {core_id : core_file_id}}).then( 
+            (data)=>{
+                if(data == null)
+                    res.error(411);
+                else
+                    resolve(data);
+            },
+            (err)=>{
+                reject(res, 500);
+            }
+        );
+    });
+};
+
+const _query_int_pkg_id = (res, package_id) => {
+    const IntegratedPackage = model.get("IntegratedPackage");
+    return new Promise((resolve, reject) => {
+        IntegratedPackage.findOne({where: {pkg_id : package_id}}).then( 
             (data)=>{
                 if(data == null)
                     res.error(411);
@@ -327,6 +344,7 @@ module.exports = {
 
     delete_core_file: (req, res) => {
         const ServerCore = model.get("ServerCore");
+
         // core_file_id as param
         let core_file_id;
         try {
@@ -337,7 +355,15 @@ module.exports = {
         }
 
         _query_core_file_id(res, core_file_id).then((data)=>{
-            // TODO delete file
+            const file_path = utils.resolve(data.file_dir, data.file_name);
+
+            // delete file
+            try {
+                fs.unlink(file_path);   
+            } catch (error) {
+                
+            }
+
             ServerCore.destroy({where:{core_id : core_file_id}}).then( ()=>{
                 res.success(200);
             },(err)=>{
@@ -426,6 +452,7 @@ module.exports = {
                         "pkg_id" : item.pkg_id,
                         "package_name" : item.package_name,
                         "minecraft_version" : item.minecraft_version,
+                        "exec_jar": item.exec_jar,
                         "file_size" : _filesize_format(item.file_size),
                         "note" : item.note
                     };
@@ -503,6 +530,49 @@ module.exports = {
         }
     },
 
+    // params:
+    // @pkg_id: <integer>
+    // get the content of directory
+    // 
+    // returns:
+    // <string> directory info
+    read_bundle_directory_by_package_id: (req, res, next) => {
+        const IntegratedPackage = model.get("IntegratedPackage");
+        const package_id = req.params.package_id;
+
+        IntegratedPackage.findOne({where: {pkg_id : package_id}}).then( 
+            (data)=>{
+                if(data == null){
+                    res.error(411);
+                }else{
+                    let file_path = data.file_path;
+                    if(file_path == null || file_path == ""){
+                        res.error(406);
+                    }else{
+                        // execute tool
+                        const __target = file_path;
+                        const cmd_args = `--method=read --target=${__target} --type=zip`;
+
+                        // launch downloader process!
+                        const unzip_module = utils.resolve(
+                            __dirname,
+                            "../../tools/unzip"
+                        );
+                        let proc = cp.fork(unzip_module, cmd_args.split(" "), {silent: true});
+
+                        // get result from stdout
+                        proc.stdout.on('data', (buf) => {
+                            let dir_info = buf.toString().trim();
+                            res.success(dir_info);
+                        });
+                    }
+                }
+            },
+            (err)=>{
+                res.error(500);
+            }
+        );
+    },
     // after all preparation, it's time to add this package into database!
     // params
     // @file: stored file name
@@ -583,6 +653,67 @@ module.exports = {
                 })
             }
         });
+    },
+    // edit int package
+    // @params
+    // pkg_id
+    edit_int_pkg_params: (req, res) => {
+        const IntegratedPackage = model.get("IntegratedPackage");        
+        let package_id;
+        try {
+            package_id = parseInt(req.params.package_id); 
+        } catch (error) {
+            console.error(error);
+            res.error(407);
+        }
+
+        // first find if inst id exists
+        _query_int_pkg_id(res, package_id)
+            .then((data)=> {
+                let update_dict = {};
+                update_dict["note"] = req.body.note;
+                update_dict["exec_jar"] = req.body.exec_jar;
+                update_dict["package_name"] = req.body.package_name;
+                update_dict["minecraft_version"] = req.body.minecraft_version;
+
+                // update core_file content
+                IntegratedPackage.update(update_dict, {where: {pkg_id: package_id}}).then(
+                    ()=>{
+                        res.success(200);
+                    },(err)=>{
+                        console.error(err);
+                        res.error(500);
+                    }
+                )
+            },/*error*/_reject_end);
+    },
+
+    delete_int_pkg: (req, res) => {
+        const IntegratedPackage = model.get("IntegratedPackage");
+        // core_file_id as param
+        let package_id;
+        try {
+            package_id = parseInt(req.params.package_id); 
+        } catch (error) {
+            console.error(error);
+            res.error(407);
+        }
+
+        // TODO
+        _query_int_pkg_id(res, package_id).then((data)=>{
+            try {
+                fs.unlink(data.file_path);
+            } catch (error) {
+                
+            }
+            // TODO delete file
+            IntegratedPackage.destroy({where:{pkg_id : package_id}}).then( ()=>{
+                res.success(200);
+            },(err)=>{
+                console.error(err);
+                res.error(500);
+            });
+        }, _reject_end);
     },
     /* 
      *     

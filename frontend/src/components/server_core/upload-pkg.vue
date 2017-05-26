@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="edit_model_content">
-    <drop-box ref="step01">
+    <drop-box ref="step01" :shown="true">
         <div slot="title">1. 上传整合包</div>
         <div slot="body">
             <span class="des">整合包是一个已经拥有全部配置、插件及MOD的服务器压缩包。用家可以直接以之为模板创建服务器。
@@ -213,7 +213,12 @@ export default{
             this.note = "";
             this.show_progress_bar = false;
             this.progress_bar_ratio = 0.0;
-            this.progress_bar_status = UPLOADING;
+            this.progress_bar_status = UPLOADING;            
+        },
+
+        resetData(){
+            this.latest_stored_filename = null;
+            this.resetForm();
         },
         // upload related method
         _onCompeleteUpload(status, response){
@@ -225,6 +230,10 @@ export default{
                 this.latest_stored_filename = response.info.path;
                 // notify other components that file has finished uploading!
                 // this.$emit("uploadFinish");
+                setTimeout(()=>{
+                    this.controlDropBox([false, true, false]);
+                }, 300); // expand next step after 1500ms
+                
                 this.readBundleDirectory();
             }else{
                 this._enable_upload = true;
@@ -260,6 +269,13 @@ export default{
 
         changeExecJar(exec_jar){
             this.exec_jar = exec_jar;
+            this.controlDropBox([false, true, true]);
+        },
+
+        controlDropBox(index_arr){
+            this.$refs.step01.set_shown(index_arr[0]);
+            this.$refs.step02.set_shown(index_arr[1]);
+            this.$refs.step03.set_shown(index_arr[2]);
         }
     },
     components:{
@@ -275,8 +291,6 @@ export default{
             if(val !== oldVal && val != "")
                 v.package_bundle_name = v.original_filename.split(".")[0];
         });
-        // add callback events
-
     }
 }
 </script>

@@ -20,6 +20,7 @@
 </template>
 
 <script>
+let toggle_lock = false;
     export default {
         name:"drop-box",
         props:{
@@ -35,13 +36,26 @@
         methods:{
             set_shown(status){
                 if(status === this.collapse){
-                    toggle_body();
+                    this.toggle_body(true);
                 }
             },
-            toggle_body(){
+            toggle_body(force){
                 const time = 400; // ms
                 let elem = this.$el.querySelector("#box_body");
                 
+                if(!toggle_lock){
+                    toggle_lock = true;
+                }else{
+                    // skip all following operations
+                    let self = this;
+                    if(force === true){
+                        setTimeout(()=>{
+                            toggle_lock = false;
+                            self.toggle_body();
+                        }, time*2);
+                    }
+                    return ;
+                }
                 this.collapse = !this.collapse;
 
                 if(!this.collapse){
@@ -62,13 +76,15 @@
                         // so that the box is extendable.
                         elem.style.height = "auto";
                         elem.style.transition = "none";
-                    },time*2);
+                        toggle_lock = false;
+                    },time*1.5);
                 }else{
                     let height = window.getComputedStyle(elem).height;
                     elem.style.height = height;
                     setTimeout(()=>{
                         elem.style.transition = "height "+ 400 +"ms";
-                        elem.style.height = "0px";    
+                        elem.style.height = "0px"; 
+                        toggle_lock = false; 
                     },15);
                 }
             }

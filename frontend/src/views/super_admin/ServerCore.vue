@@ -102,20 +102,27 @@
                             </div>
                             <div class="core_list" v-for="(int_pkg_item,_index) in int_pkg_list">
                                 <div class="edit-button">
-                                    <a title="" data-placement="left" data-toggle="tooltip"  data-original-title="编辑" @click="edit_serv_core(_index)"><i class="ion-edit"></i></a>
-                                    <a title="" data-placement="left" data-toggle="tooltip" data-original-title="删除" @click="delete_serv_core(_index)"><i class="ion-close-round"></i></a>
+                                    <a title="" data-placement="left" data-toggle="tooltip"  data-original-title="编辑" @click="edit_int_pkg(_index)"><i class="ion-edit"></i></a>
+                                    <a title="" data-placement="left" data-toggle="tooltip" data-original-title="删除" @click="delete_int_pkg(_index)"><i class="ion-close-round"></i></a>
                                 </div>
                                 <div class="server_core_avatar">
-                                    <img v-if="int_pkg_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
+                                    <!--<img v-if="int_pkg_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
                                     <img v-else-if="int_pkg_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
                                     <img v-else-if="int_pkg_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
                                     <img v-else-if="int_pkg_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
-                                    <div class="no-pic" v-else>暂无图片</div>
+                                    <div class="no-pic" v-else>暂无图片</div>-->
+                                    <div class="no-pic">暂无图片</div>
                                 </div>
 
                                 <div class="server_core_info">
                                     <div class="list_title">
                                         {{ int_pkg_item.package_name }}
+                                    </div>
+                                    <div class="list_row">
+                                        <div>
+                                            <span class="ttl">核心文件: </span>&nbsp;
+                                            <span class="text">{{ int_pkg_item.exec_jar }}</span>
+                                        </div>
                                     </div>
                                     <div class="list_row">
                                         <div class="half">
@@ -222,7 +229,7 @@
             </div>
         </edit-modal>
 
-        <!-- delete confrim prompt -->
+        <!-- delete confirmation prompt -->
         <del-modal v-if="showDeleteModal" @cancel="showDeleteModal = false" @confirm="confirm_delete">
             <span slot="header">删除</span>
             <div slot="body">
@@ -233,10 +240,11 @@
             </div>
         </del-modal>
 
+        <!-- INTEGRATED PACKAGE-->
         <!-- int_pkg add modal -->
         <add-pkg-modal 
             v-if="showAddIntPkgModal" 
-            @cancel="showAddIntPkgModal = false" 
+            @cancel="cancel_add_pkg" 
             @confirm="confirm_add_pkg"
             >
             <span slot="header">添加整合包</span>
@@ -247,11 +255,70 @@
                         @allowUpload="onAllowUpload"
                         ref="PackageUploader"
                         ></c-upload-pkg>
+                    <span class="error" style="color:red;" v-if="AddIntPkgFailed">添加整合包失败，请重试！</span>
                 </div>
             </div>
             <span slot="cancel_text">取消</span>
             <span slot="confirm_text">添加</span>
         </add-pkg-modal>
+
+         <!-- edit package -->
+        <edit-pkg-modal v-if="showEditPkgModal" @cancel="showEditPkgModal = false" @confirm="confirm_edit_pkg">
+            <span slot="header">编辑</span>
+            <div slot="body" class="edit_model_content">
+                <div class="form_group">
+                    <div class="form_label">
+                        整合包名：
+                    </div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_pkg_form.package_name"/>
+                    </div>
+                </div>
+                <div class="form_group">   
+                  <div class="form_label">核心文件：</div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_pkg_form.exec_jar" placeholder=""/>
+                    </div>
+                </div>
+                <div style="font-size:1.4rem;color:#666;">请在目录下面选择一个文件：</div>
+                <tree-view 
+                    :treeData="edit_pkg_form.bundle_view_list" 
+                    :rootZip="'/'" 
+                    :status="edit_pkg_form.bundle_view_status"
+                    @file_click="changeExecJar"
+                ></tree-view>
+                                    
+                <div class="form_group">
+                    <div class="form_label">MC版本：</div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_pkg_form.minecraft_version"/>
+                    </div>
+                </div>
+
+                <div class="form_group">
+                    <div class="form_label">
+                        备注：
+                    </div>
+                    <div class="form_input">
+                        <textarea class="form-control" v-model="edit_pkg_form.note"></textarea>
+                    </div>
+                </div>
+                <div class="error-hint" v-show="edit_pkg_modal_error">
+                    编辑失败，请重试
+                </div>
+            </div>
+        </edit-pkg-modal>
+
+        <!-- delete pkg modal-->
+        <del-pkg-modal v-if="showDeletePkgModal" @cancel="showDeletePkgModal = false" @confirm="confirm_delete_pkg">
+            <span slot="header">删除</span>
+            <div slot="body">
+                确认删除整合包「 <b>{{ delete_pkg_name }}</b> 」？此操作将不可逆！
+                <div class="error-hint" v-show="delete_pkg_error">
+                    删除失败，请重试
+                </div>
+            </div>
+        </del-pkg-modal>
     </section>
 </template>
 
@@ -265,6 +332,7 @@ const TYPE_FROM_SOURCE = 32;
 import WebSocket from "../../lib/websocket.js"
 import Loading from '../../components/c-loading.vue';
 import LoadError from '../../components/c-error.vue';
+import TreeView from '../../components/server_core/tree-view.vue';
 import cModal from '../../components/c-modal.vue';
 import UploadFile from '../../components/server_core/upload-file.vue';
 import UploadPkg from '../../components/server_core/upload-pkg.vue';
@@ -273,11 +341,14 @@ export default {
         'c-loading': Loading,
         'load-error': LoadError,
         'edit-modal': cModal,
+        'edit-pkg-modal': cModal,
         'del-modal': cModal,
+        'del-pkg-modal': cModal,
         'add-modal': cModal,
         'add-pkg-modal': cModal,
         'c-upload-file' : UploadFile,
-        'c-upload-pkg': UploadPkg
+        'c-upload-pkg': UploadPkg,
+        'tree-view': TreeView
     },
     name : "ServerCore",
     data(){
@@ -293,6 +364,16 @@ export default {
                 minecraft_version: "",
                 core_version: "",
                 note: ""
+            },
+            edit_pkg_form:{
+                package_name: "",                
+                minecraft_version: "",
+                exec_jar: "",
+                note: "",
+
+                // tree-view
+                bundle_view_list: {},
+                bundle_view_status: 0
             },
             showEditModal : false,
             _edit_index: null,
@@ -311,10 +392,18 @@ export default {
             // add pkg modal
             showAddIntPkgModal: false,
             enable_int_pkg_upload: false,
+            AddIntPkgFailed: false,
+
+            // edit pkg modal
+            showEditPkgModal : false,
+            _edit_pkg_index: null,
+            edit_pkg_modal_error: false,
 
             // delete pkg modal
+            showDeletePkgModal: false,
             _delete_pkg_index: null,
-            _delete_pkg_name: null
+            delete_pkg_name: null,
+            delete_pkg_error: false
         }
     },
     methods: {
@@ -340,6 +429,7 @@ export default {
             this._edit_index = index;
             this.edit_modal_error = false;
         },
+
         // on confirm
         confirm_edit(){
             const ajax_data = {
@@ -375,6 +465,7 @@ export default {
             let _index = this._delete_index;
             let core_file_id = this.core_list[_index]["core_id"];
             let v = this;
+
             ws.ajax("GET", "/super_admin/core/delete_core_file/"+core_file_id, (msg)=>{
                 // on success
                 v.showDeleteModal = false;
@@ -425,6 +516,89 @@ export default {
             this.showAddIntPkgModal = true;
         },
 
+        // click methods
+        edit_int_pkg(index){
+            let ws = new WebSocket();
+            this.edit_pkg_form["package_name"] = this.int_pkg_list[index]["package_name"];
+            this.edit_pkg_form["exec_jar"] = this.int_pkg_list[index]["exec_jar"];
+            this.edit_pkg_form["minecraft_version"] = this.int_pkg_list[index]["minecraft_version"];
+            this.edit_pkg_form["note"] = this.int_pkg_list[index]["note"];
+            // init modal params
+            this.showEditPkgModal = true;
+            this._edit_pkg_index = index;
+            this.edit_pkg_modal_error = false;
+            
+            let pkg_id = this.int_pkg_list[index]["pkg_id"];
+            let v = this;
+            ws.ajax("GET", "/super_admin/core/read_bundle_directory_by_package_id/"+pkg_id, (msg)=>{
+                try{
+                    let msg_obj = JSON.parse(msg);
+                    v.edit_pkg_form.bundle_view_status = 1; // success
+                    v.edit_pkg_form.bundle_view_list = msg_obj;
+                }catch(e){
+                    v.edit_pkg_form.bundle_view_status = 2; // failed
+                }                
+            }, (code) => {
+                v.edit_pkg_form.bundle_view_status = 2; // failed
+            })
+        },
+
+        changeExecJar(file){
+            this.edit_pkg_form.exec_jar = file;
+        },
+        
+        confirm_edit_pkg(){
+            const ajax_data = {
+                "package_name" : this.edit_pkg_form.package_name,
+                "exec_jar" : this.edit_pkg_form.exec_jar,
+                "minecraft_version" : this.edit_pkg_form.minecraft_version,
+                "note" : this.edit_pkg_form.note,                
+            };
+
+            let ws = new WebSocket();
+            let _index = this._edit_pkg_index;
+            let package_id = this.int_pkg_list[_index]["pkg_id"];
+            let v = this;
+            ws.ajax("POST", "/super_admin/core/edit_int_pkg_params/"+package_id, ajax_data, (msg)=>{
+                for(let key in v.edit_form)
+                    v.int_pkg_list[_index][key] = v.edit_pkg_form[key];
+                v.showEditPkgModal = false;
+                v.edit_pkg_modal_error = false;
+            },(code)=>{
+                v.edit_pkg_modal_error = true;
+            })
+        },
+
+        delete_int_pkg(index){
+            this.showDeletePkgModal = true;
+            this._delete_pkg_index = index;
+            this.delete_pkg_error = false;
+            this.delete_pkg_name = this.int_pkg_list[index]["package_name"];
+        },
+
+        confirm_delete_pkg(){
+            let ws = new WebSocket();
+            let _index = this._delete_pkg_index;
+            
+            let package_id = this.int_pkg_list[_index]["pkg_id"];
+            let v = this;
+            ws.ajax("GET", "/super_admin/core/delete_int_pkg/"+package_id, (msg)=>{
+                // on success
+                v.showDeletePkgModal = false;
+                v.int_pkg_list.splice(_index, 1);
+                v.delete_pkg_error = false;
+            },(code)=>{
+                // on error
+                v.delete_pkg_error = true;
+            })
+        },
+
+        cancel_add_pkg(){
+            this.AddIntPkgFailed = false;
+            this.showAddIntPkgModal = false;
+            this.$refs.PackageUploader.resetData();
+        },
+
         confirm_add_pkg(){
             let ws = new WebSocket();
             let v = this.$refs.PackageUploader;
@@ -437,10 +611,15 @@ export default {
                 note: v.note
             };
 
+            let self = this;
             ws.ajax("POST", `/super_admin/core/add_integrated_package`, payload, (msg) => {
-                console.log(msg);
+                self.aj_load_int_pkg_list();
+                setTimeout(()=>{
+                    this.showAddIntPkgModal = false;
+                },1000);
+                
             }, (code) => {
-               // TODO
+               self.AddIntPkgFailed = true;
             });    
         }
     },

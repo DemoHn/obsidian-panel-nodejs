@@ -2,6 +2,8 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const mkdirp = require("mkdirp");
+const jschardet = require("jschardet");
+const iconv = require("iconv-lite");
 const cp = require("child_process");
 
 // read file contents in the target
@@ -39,7 +41,18 @@ module.exports = (target, type, callback) => {
             exec_name = "./7za";
         }
 
-        let proc = cp.exec(`${exec_name} l ${target}`, (err, stdout, stderr) => {
+        let proc = cp.exec(`${exec_name} l ${target}`, {encoding: null}, (err, stdout, stderr) => {
+            // detect encoding
+            let detect_info = jschardet.detect(stdout);
+
+            // if the possibility of one encoding is really large
+            // then accept the conclusion.
+            // else use the default encoding 'utf8' instead
+            if(detect_info.confidence > 0.8){
+                stdout = iconv.decode(stdout, detect_info.encoding);
+            }else{
+                stdout = iconv.decode(stdout, 'utf8');
+            }
             if(stdout != ""){
                 let stdout_arr = stdout.split(/(\r?\n)/);
                 for(let line in stdout_arr) {

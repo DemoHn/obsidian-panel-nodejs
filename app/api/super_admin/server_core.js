@@ -45,5 +45,14 @@ router.post("/upload_integrated_package", upload.single('files'), core_ctrl.save
 
 router.get("/read_bundle_directory", core_ctrl.read_bundle_directory);
 
+router.get("/read_bundle_directory_by_package_id/:package_id", core_ctrl.read_bundle_directory_by_package_id);
+
 router.post("/add_integrated_package", core_ctrl.add_integrated_package);
+
+// edit pkg id
+router.post("/edit_int_pkg_params/:package_id", core_ctrl.edit_int_pkg_params);
+
+// delete pkg id
+router.get("/delete_int_pkg/:package_id", core_ctrl.delete_int_pkg);
+
 module.exports = router;
