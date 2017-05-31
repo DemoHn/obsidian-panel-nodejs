@@ -263,9 +263,9 @@ module.exports = {
             const logo_url = req.body.logo_url,
                   logo_file = utils.resolve(config["global"]["data_dir"], "uploads", logo_url),
                   new_logo = utils.resolve(res._inst_dir, icon_png);
-                
-            if(utils.exists(logo_file)){                
-                fs.moveSync(logo_file, new_logo, {overwrite: true});
+            
+            if(logo_url != null && utils.exists(logo_file)){ 
+                fs.renameSync(logo_file, new_logo);
             }
             next();
         }
@@ -297,8 +297,7 @@ module.exports = {
                         if(code != 0){
                             res.error(500);
                         }else{
-                            res.error(500);
-                            //next();
+                            next();
                         }
                     });
                 }

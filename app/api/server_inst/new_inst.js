@@ -49,9 +49,9 @@ router.post("/create_instance",inst_ctrl._creat_inst_name,
                                inst_ctrl._creat_server_core,
                                inst_ctrl._creat_alloc_RAM,
                                inst_ctrl._creat_max_user,                               
-                               inst_ctrl._creat_ftp_account,
-                               inst_ctrl._move_logo,
+                               inst_ctrl._creat_ftp_account,                               
                                inst_ctrl._unzip_package,
+                               inst_ctrl._move_logo,
                                inst_ctrl.create_instance);
 
 module.exports = router;
