@@ -20,7 +20,7 @@ class KVParser{
             return null;
         }
         const read_data = fs.readFileSync(this.file, {encoding: 'utf8'});
-        let kv_array = read_data.split("\n");
+        let kv_array = read_data.split(/\r?\n/);
 
         for(let index in kv_array){
             let line = kv_array[index];

@@ -30,6 +30,7 @@ router.post("/submit_config",
     startup_ctrl.set_port_config,
     startup_ctrl.set_db_config,
     startup_ctrl.init_main_db,
+    startup_ctrl.write_version_stamp,
     startup_ctrl.init_super_admin
 );
 

@@ -122,6 +122,20 @@ module.exports = {
         })
     },
 
+    write_version_stamp: (req, res, next) => {
+        const HistoryData = require("../model").HistoryData;
+        HistoryData.create({
+            time: "0000000000",
+            inst_id: 0,
+            key: "current_version",
+            value: utils.get_version()
+        }).then((data) => {
+            next();
+        },(err) => {
+            res.error(500);
+        });
+    },
+
     init_super_admin: (req, res) => {
         const User = require("../model").User;
         const body = req.body;

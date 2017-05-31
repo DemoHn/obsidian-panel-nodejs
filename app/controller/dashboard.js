@@ -40,6 +40,7 @@ module.exports = {
     get_miscellaneous_info(req, res, next){
         const ServerInstance = model.get("ServerInstance"),
               ServerCore = model.get("ServerCore"),
+              IntegratedPackage = model.get("IntegratedPackage"),
               FTPAccount = model.get("FTPAccount");
         
         let properties_params = {
@@ -52,20 +53,28 @@ module.exports = {
             "server_properties": null
         };
 
-        ServerCore.hasMany(ServerInstance, {foreignKey: "core_file_id"});
-        ServerInstance.belongsTo(ServerCore, {foreignKey: "core_file_id"});
+        //ServerCore.hasMany(ServerInstance, {foreignKey: "core_file_id"});
+        ServerInstance.belongsTo(ServerCore, {foreignKey: "core_file_id", targetKey:"core_id"});
+        ServerInstance.belongsTo(IntegratedPackage, {foreignKey: "int_pkg_id", targetKey:"pkg_id"});
 
         ServerInstance.findOne({
-            include : [ ServerCore ],
+            include : [ ServerCore, IntegratedPackage ],
             where: {
                 inst_id: req._inst_id
             }
         }).then((data) => {
             // get necessary column info from db
             const inst_dir = data.inst_dir,
-                  mc_version = data.ServerCore.minecraft_version,
+                  //mc_version = data.ServerCore.minecraft_version,
                   listening_port = data.listening_port;
             
+            let mc_version = null;
+            if(data.use_integrated_package === true){
+                mc_version = data.IntegratedPackage.minecraft_version;
+            }else{
+                mc_version = data.ServerCore.minecraft_version;
+            }
+
             FTPAccount.findOne({
                 where: {
                     inst_id : req._inst_id
@@ -81,6 +90,7 @@ module.exports = {
                 if(utils.exists(file_server_properties)){
                     let parser = new Parser(file_server_properties);
                     let conf_items = parser.loads();
+  
                     properties_params.server_properties = conf_items;
                     properties_params.motd = conf_items["motd"];
                 }
@@ -152,10 +162,6 @@ module.exports = {
             console.log(err);
             res.error(500);
         });
-    },
-
-    get_instance_status(req, res, next){
-
     },
 
     get_instance_log(req, res, next){

@@ -416,10 +416,10 @@ module.exports = {
         _write_server_properties();
 
         let _server_core_id = null, _int_pkg_id = null;
-        if(res._use_integrated_package){
-            _server_core_id = res._server_core_id;
+        if(res._use_integrated_package === true){
+            _int_pkg_id = res._server_core_id;            
         }else{
-            _int_pkg_id = res._server_core_id;
+            _server_core_id = res._server_core_id;
         }
 
         ServerInstance.create({

@@ -16,7 +16,7 @@ const _update_pool_data = (inst_id, db_item) => {
     // add int_pkg support
     let _jar_file = null;
 
-    if(db_item.use_integrated_package === true){        
+    if(db_item.use_integrated_package === true){
         _jar_file = utils.resolve(db_item.inst_dir, db_item.IntegratedPackage.exec_jar);
     }else{
         _jar_file = utils.resolve(db_item.ServerCore.file_dir, db_item.ServerCore.file_name);
