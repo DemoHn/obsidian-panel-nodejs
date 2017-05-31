@@ -142,8 +142,8 @@
                     <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
                         <span class="input-element">
                             <select name="online-mode" class="form-control" v-model="s_online_mode">
-                                <option :value="'true'">开启</option>
-                                <option :value="'false'">关闭</option>
+                                <option :value="true">开启</option>
+                                <option :value="false">关闭</option>
                             </select>
                         </span>
                     </div>
@@ -151,8 +151,8 @@
                     <div class="setting-item"><span class="item-text">PVP模式</span>
                         <span class="input-element">
                             <select  class="form-control" v-model="s_pvp">
-                                <option :value="'true'">开启</option>
-                                <option :value="'false'">关闭</option>
+                                <option :value="true">开启</option>
+                                <option :value="false">关闭</option>
                             </select>
                         </span>
                     </div>
@@ -181,8 +181,8 @@
                     <div class="setting-item"><span class="item-text">怪物生成</span>
                         <span class="input-element">
                             <select class="form-control" v-model="s_spawn_monsters">
-                                <option :value="'true'">开启</option>
-                                <option :value="'false'">关闭</option>
+                                <option :value="true">开启</option>
+                                <option :value="false">关闭</option>
                             </select>
                         </span>
                     </div>
@@ -190,8 +190,8 @@
                     <div class="setting-item"><span class="item-text">生成下界</span>
                         <span class="input-element">
                             <select class="form-control" v-model="s_allow_nether">
-                                <option :value="'true'">开启</option>
-                                <option :value="'false'">关闭</option>
+                                <option :value="true">开启</option>
+                                <option :value="false">关闭</option>
                             </select>
                         </span>
                     </div>
@@ -319,12 +319,11 @@
                 "ftp_password" : "",
 
                 /*server properties*/
-                "server_properties" : "{}",
-                "s_online_mode" : "true",
-                "s_pvp" : "true",
+                "s_online_mode" : true,
+                "s_pvp" : true,
                 "s_difficulty" : 1,
-                "s_spawn_monsters" : "true",
-                "s_allow_nether" : "true",
+                "s_spawn_monsters" : true,
+                "s_allow_nether" : true,
                 "s_gamemode" : 0,
                 /*button*/
                 "button_status" : 0
@@ -380,7 +379,8 @@
                 this.ftp_password_assert = true;
 
                 // check value, and judge
-                if(this.core_file_id == null){
+                if(this.core_file_id == null && this.use_integrated_package === false ||
+                   this.package_id == null && this.use_integrated_package === true){
                     asserts_data = false;
                     this.server_core_assert = false;
                     this.button_status = 0;
@@ -446,7 +446,7 @@
                     "ftp_default_password" : that.default_ftp_password,
                     "ftp_password" : that.ftp_password
                 }
-
+                
                 ws.ajax("POST", "/server_inst/new_inst/create_instance", creat_data, (msg)=>{
                     let inst_id = msg;
                     location.href = "/server_inst/dashboard#" + inst_id;
@@ -462,8 +462,13 @@
                     this.ftp_account_name = msg.FTP_account_name;
                     this.int_pkg_list = msg.int_pkgs;
 
+                    // set its default value
                     if(this.server_cores_list.length > 0){
                         this.core_file_id = this.server_cores_list[0]['index'];
+                    }
+
+                    if(this.int_pkg_list.length > 0){
+                        this.package_id = this.int_pkg_list[0]['index'];
                     }
 
                     if(this.java_versions_list.length > 0){

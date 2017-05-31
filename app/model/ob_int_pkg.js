@@ -12,7 +12,7 @@ module.exports = (seq_obj)=>{
         pkg_id: {type: Seq.INTEGER, primaryKey: true, autoIncrement: true},
         // file size (unit: Bit)
         file_size : Seq.INTEGER,
-        // where does the file stored
+        // the location of bundle
         file_path : Seq.TEXT,
         // which user upload this file
         file_uploader : Seq.INTEGER,

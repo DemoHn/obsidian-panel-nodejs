@@ -13,8 +13,16 @@ const MCWrapperConfig = require("./config"),
 const inst_pool = require("./inst_pool");
 
 const _update_pool_data = (inst_id, db_item) => {
+    // add int_pkg support
+    let _jar_file = null;
+
+    if(db_item.use_integrated_package === true){        
+        _jar_file = utils.resolve(db_item.inst_dir, db_item.IntegratedPackage.exec_jar);
+    }else{
+        _jar_file = utils.resolve(db_item.ServerCore.file_dir, db_item.ServerCore.file_name);
+    }
     let mc_w_config = {
-        "jar_file": utils.resolve(db_item.ServerCore.file_dir, db_item.ServerCore.file_name),
+        "jar_file": _jar_file,
         "java_bin": db_item.JavaBinary.bin_directory,
         // NOTICE: here, the unit max_RAM and min_RAM is MB!
         "max_RAM": parseFloat(db_item.max_RAM),        
@@ -59,17 +67,19 @@ module.exports = {
     init_proc_pool(){
         const ServerInstance = model.get("ServerInstance"),
               JavaBinary = model.get("JavaBinary"),
+              IntegratedPackage = model.get("IntegratedPackage"),
               ServerCore = model.get("ServerCore");
 
         ServerInstance.belongsTo(JavaBinary, {foreignKey: "java_bin_id", targetKey: "id"});
         ServerInstance.belongsTo(ServerCore, {foreignKey: "core_file_id", targetKey: "core_id"});
+        ServerInstance.belongsTo(IntegratedPackage, {foreignKey: "int_pkg_id", targetKey: "pkg_id"});
 
         // first clear data
         inst_pool.clear();
 
         return new Promise((resolve, reject)=>{
             ServerInstance.findAll({
-                include: [ JavaBinary, ServerCore ]
+                include: [ JavaBinary, ServerCore, IntegratedPackage ]
             }).then((data) => {
                 for(let _i=0;_i<data.length;_i++){
                     let db_item = data[_i];
@@ -80,7 +90,7 @@ module.exports = {
                 resolve();
             },(err)=>{
                 console.log(err);
-                reject();
+                reject(err);
             });
         });
     },

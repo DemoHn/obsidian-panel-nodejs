@@ -194,29 +194,63 @@ module.exports = {
     },
 
     _creat_server_core(req, res, next){
+        // server core
         const server_core_id = req.body.core_file_id;
+        // integrated package
+        const package_id = req.body.package_id;
+
         const ServerCore = model.get("ServerCore");
-        // type checking
-        if(!utils.types.likeNumber(server_core_id)){
-            res.error(406, "Invalid core_id param!");
-        }else{
-            ServerCore.findOne({where: {
-                core_id: parseInt(server_core_id)
-            }}).then(
-                (data)=>{
-                    if(data != null){
-                        res._server_core_id = parseInt(server_core_id);
-                        next();
-                    }else{
-                        res.error(600, "No such server_core_id!");
+        const IntegratedPackage = model.get("IntegratedPackage");
+        // 
+        res._use_integrated_package = req.body.use_integrated_package;
+
+        if(req.body.use_integrated_package === false){
+            // type checking
+            if(!utils.types.likeNumber(server_core_id)){
+                res.error(406, "Invalid core_id param!");
+            }else{
+                ServerCore.findOne({where: {
+                    core_id: parseInt(server_core_id)
+                }}).then(
+                    (data)=>{
+                        if(data != null){
+                            res._server_core_id = parseInt(server_core_id);
+                            next();
+                        }else{
+                            res.error(600, "No such server_core_id!");
+                        }
+                    },
+                    (error)=>{
+                        console.error(error);
+                        res.error(500);
                     }
-                },
-                (error)=>{
-                    console.error(error);
-                    res.error(500);
-                }
-            )
-        }
+                )
+            }
+        }else{
+            // type checking
+            if(!utils.types.likeNumber(package_id)){
+                res.error(406, "Invalid package_id param!");
+            }else{
+                IntegratedPackage.findOne({where: {
+                    pkg_id: parseInt(package_id)
+                }}).then(
+                    (data)=>{
+                        if(data != null){
+                            res._server_core_id = parseInt(package_id);
+                            // alias
+                            res._package_id = res._server_core_id;
+                            next();
+                        }else{
+                            res.error(600, "No such package_id!");
+                        }
+                    },
+                    (error)=>{
+                        console.error(error);
+                        res.error(500);
+                    }
+                )
+            }
+        } 
     },
 
     _move_logo(req, res, next){
@@ -233,6 +267,45 @@ module.exports = {
             if(utils.exists(logo_file)){                
                 fs.moveSync(logo_file, new_logo, {overwrite: true});
             }
+            next();
+        }
+    },
+
+    _unzip_package(req, res, next){
+        if(res._use_integrated_package){
+            const IntegratedPackage = model.get("IntegratedPackage");
+
+            IntegratedPackage.findOne({where: {pkg_id: res._server_core_id}}).then((data) => {
+                if(data == null){
+                    res.error(406);
+                }else{
+                    const __target = data.file_path;
+
+                    const __dest = utils.resolve(res._inst_dir);
+                    const cmd_args = `--method=unzip --target=${__target} --type=zip --dest=${__dest}`;
+
+                    console.log(cmd_args);
+                    // launch downloader process!
+                    const unzip_module = utils.resolve(
+                        __dirname,
+                        "../../tools/unzip"
+                    );
+                    let proc = cp.fork(unzip_module, cmd_args.split(" "), {silent: true});
+
+                    // get result from stdout
+                    proc.on('exit', (code) => {                        
+                        if(code != 0){
+                            res.error(500);
+                        }else{
+                            res.error(500);
+                            //next();
+                        }
+                    });
+                }
+            }, (err) => {
+                res.error(500);
+            });
+        }else{
             next();
         }
     },
@@ -343,10 +416,21 @@ module.exports = {
 
         _write_server_properties();
 
+        let _server_core_id = null, _int_pkg_id = null;
+        if(res._use_integrated_package){
+            _server_core_id = res._server_core_id;
+        }else{
+            _int_pkg_id = res._server_core_id;
+        }
+
         ServerInstance.create({
             owner_id: req._uid,
             inst_name : res._inst_name,
-            core_file_id : res._server_core_id,
+            
+            use_integrated_package: res._use_integrated_package,
+            core_file_id : _server_core_id,
+            int_pkg_id: _int_pkg_id,
+
             java_bin_id : res._java_bin_id,
             listening_port: res._listening_port,
             max_RAM: res._max_RAM,
@@ -618,29 +702,6 @@ module.exports = {
                             // ensure core_id exists
                             if(data !== null){
                                 ServerInstance.update({core_file_id: parseInt(value)}, {where: {inst_id: req._inst_id}})
-                                .then(()=>{ resolve(true); }, ()=>{ reject(500); });
-                            }else{
-                                // duplicated!
-                                resolve(false);
-                            }
-                        }, (err) => {reject(500);});
-                    }
-                });
-            },
-
-            _java_bin_id(value){
-                return new Promise((resolve, reject) => {
-                    if(utils.types.likeNumber(value) === false){
-                        reject(406);
-                    }else{
-                        JavaBinary.findOne({
-                            where: {
-                                id: parseInt(value)
-                            }
-                        }).then((data) => {
-                            // ensure core_id exists
-                            if(data !== null){
-                                ServerInstance.update({java_bin_id: parseInt(value)}, {where: {inst_id: req._inst_id}})
                                 .then(()=>{ resolve(true); }, ()=>{ reject(500); });
                             }else{
                                 // duplicated!

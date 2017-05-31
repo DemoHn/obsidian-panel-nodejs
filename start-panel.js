@@ -6,11 +6,8 @@ const cp = require("child_process");
 const path = require("path");
 const mkdirp = require("mkdirp");
 
-const app = require("./app").app;
-const server = require("./app").server;
 const proc = require("./app/proc");
 const utils = require("./utils");
-const model = require("./app/model");
 
 // check if config.yml exists
 
@@ -111,6 +108,8 @@ const check_config = () => {
 }
 
 const launch_process = () => {
+    const server = require("./app").server;
+
     let config = utils.get_config();
     
     let server_port = config["server"]["listen_port"];
@@ -122,25 +121,34 @@ const launch_process = () => {
 }
 
 const sync_model = () => {
+    const db = require("./app/model");
+    const _migrate = require("./app/model/_migration");
     // sync database
-    model.__sequelize.sync().then(
-        // if success
-        ()=>{
-            // init proc_pool
-            // For process watcher, all instances shall be registered to
-            // a global object (which name is `inst_pool`) before starting / stopping instances
-            proc.init_proc_pool().then(()=>{
-                launch_process();
-            },(err)=>{
+    _migrate(db.__sequelize, db["HistoryData"]).then(()=>{
+        db.__sequelize.sync().then(
+            // if success
+            ()=>{
+                // init proc_pool
+                // For process watcher, all instances shall be registered to
+                // a global object (which name is `inst_pool`) before starting / stopping instances
+                proc.init_proc_pool().then(()=>{
+                    launch_process();
+                },(err)=>{
+                    console.log("[ERR-INIT] Launch Server Process Error!")
+                    console.log(err);
+                });
+            },
+            // if error
+            (err)=>{
+                console.log("[ERR-SQLERR] Sync Database Data Error!");
                 console.log(err);
-            });            
-        },
-        // if error
-        (err)=>{
-            console.log("[ERR-SQLERR] Sync Database Data Error!");
-            console.log(err);
-        }
-    );
+            }
+        ); 
+
+    },(err) => {
+
+    });
+      
 }
 
 const argv = process.argv;
@@ -178,7 +186,7 @@ if(argv[2] === "-t"){
         if(utils.get_startup_lock() === true){
             // launch directly, without sync db model
             launch_process();
-        }else{
+        }else{            
             // process `launch_process` is included in `sync_model`!
             sync_model();
         }

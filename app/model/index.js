@@ -4,8 +4,28 @@ const path = require("path");
 const Sequelize = require("sequelize");
 const mysql = require("mysql");
 
+const _migrate = require("./_migration");
+
 let db = {};
-const init_model = () => {
+
+const _import_model = (sequelize, db, model_file) => {
+    // if `model_name` is null, then import all models
+    // import models from files
+    fs.readdirSync(__dirname).filter(function(file) {
+        return (file.indexOf(".") !== 0) && (file !== "index.js") && (file.indexOf("_") !== 0);
+    }).forEach(function(file) {
+
+        if(model_file == null){
+            let model = sequelize.import(path.join(__dirname, file));
+            db[model.name] = model;
+        }else if(model_file+".js" == file){
+            let model = sequelize.import(path.join(__dirname, file));
+            db[model.name] = model;            
+        }
+    });
+};
+
+const init_model = (model_file) => {
     let config, sequelize;
     // delete old model objects
     for(let item in db){
@@ -32,25 +52,19 @@ const init_model = () => {
                 logging: false
             });
         }
-    } catch(e){
-        console.error(e);
+    } catch(err){
+        console.error(err);
         return null;
     }
 
-    // import models from files
-    fs.readdirSync(__dirname).filter(function(file) {
-        return (file.indexOf(".") !== 0) && (file !== "index.js");
-    }).forEach(function(file) {
-        let model = sequelize.import(path.join(__dirname, file));
-        db[model.name] = model;
-    });
-
+    _import_model(sequelize, db, model_file);
     return sequelize;
 }
 
 db.__init_model = init_model;
 
 if(utils.get_startup_lock() === false){
+    // before migration    
     db.__sequelize = db.__init_model();
 }
 

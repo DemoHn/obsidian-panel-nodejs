@@ -23,7 +23,13 @@ module.exports = (seq_obj)=>{
         inst_dir : Seq.TEXT,
         //star (one user could star only one instance)
         // if this instance is starred, it will be shown at first
-        star : Seq.BOOLEAN
+        star : Seq.BOOLEAN,
+
+        // add the folllowing column since v0.6.1 - DemoHn 31//5/2017
+        int_pkg_id: Seq.INTEGER,
+        // use int_pkg or core_file?
+        use_integrated_package: { type: Seq.BOOLEAN, default: false }
+
     },{
         tableName:"ob_server_instance"
     })

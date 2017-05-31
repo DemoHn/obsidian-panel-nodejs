@@ -13,9 +13,10 @@ module.exports = (target, dest, type) => {
     }
 
     if(type === "zip" || type === "tar"){
-        let cmd = `${exec_name} x ${target} -o${dest} -ao`; // extract command          
+        let cmd = `${exec_name} x ${target} -o${dest} -aoa`; // extract command          
         let proc = cp.exec(cmd, (err, stdout, stderr) => {
-            console.log(stdout);            
+            console.log(stdout); 
+            console.log(stderr);          
         });
 
         proc.on("exit", (code)=> {            
