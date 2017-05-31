@@ -870,9 +870,11 @@ module.exports = {
         const JavaBinary = model.get("JavaBinary");
         const ServerCore = model.get("ServerCore");
         const FTPAccount = model.get("FTPAccount");
+        const IntegratedPackage = model.get("IntegratedPackage");
 
         let java_versions = [];
         let server_cores  = [];
+        let int_pkgs = [];
 
         // empty function ,for reject callback
         const _empty_func = ()=>{};
@@ -931,6 +933,30 @@ module.exports = {
             });
         };
 
+        const _get_integrated_package = () => {
+            return new Promise((resolve, reject) => {
+                IntegratedPackage.findAll().then(
+                    (datas) => {
+                        for(let i = 0;i<datas.length;i++){
+                            let item = datas[i];
+                            
+                            let _model = {
+                                name: item.package_name,
+                                index: item.pkg_id                                
+                            }
+                            int_pkgs.push(_model);
+                        }
+                        resolve();
+                    },
+                    (err) => {
+                        console.log(err);
+                        res.error(500);
+                        reject();
+                    }
+                )
+            });
+        };
+
         let ftp_user_name = "default_ftp_user_name";
         const _select_ftp_account = () => {
             return new Promise((resolve, reject) => {
@@ -961,11 +987,13 @@ module.exports = {
         }
 
         _get_java_versions().then(_get_server_cores, _empty_func)
+            .then(_get_integrated_package, _empty_func)
             .then(_select_ftp_account, _empty_func).then(
                 () => {
                     let rtn_model = {
                         java_versions: java_versions,
                         server_cores: server_cores,
+                        int_pkgs: int_pkgs,
                         FTP_account_name: ftp_user_name
                     }
 

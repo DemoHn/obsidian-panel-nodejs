@@ -85,7 +85,12 @@
             <inst-item :JR_result="server_core_assert">
                 <span slot="title">服务器核心</span>
                 <div slot="control">
-                    <div>
+                    <div style="line-height: 3rem;">
+                        <span><sel-switch size="sm" v-model="use_integrated_package"></sel-switch></span>
+                        <span style="margin-left: 0.6rem; color: #333;">使用整合包</span>
+                    </div>
+
+                    <div v-if="use_integrated_package == false">
                          <span class="input-element">
                              <select name="core_file_id" class="form-control" v-model="core_file_id" >
                                  <option :value="null" v-if="server_cores_list.length === 0">-- 还没有选择 --</option>
@@ -93,6 +98,16 @@
                              </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/core" target="_blank">添加核心</a>
                          </span>
                     </div>
+
+                    <div v-else>
+                         <span class="input-element">
+                             <select name="package_id" class="form-control" v-model="package_id" >
+                                 <option :value="null" v-if="int_pkg_list.length === 0">-- 还没有选择 --</option>
+                                 <option :value="item['index']" v-for="item in int_pkg_list">{{ item['name'] }}</option>
+                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/core" target="_blank">添加整合包</a>
+                         </span>
+                    </div>
+
                 </div>
                 <div slot="description"></div>
                 <div slot="error-msg">请至少选择一个核心!!</div>
@@ -247,7 +262,6 @@
                 </div>
             </li>
         </ul>
-
     </div>
 </template>
 
@@ -255,13 +269,16 @@
     import InstanceItem from "../../components/new_instance/inst-item.vue"
     import LogoUploader from "../../components/new_instance/logo-uploader.vue"
     import MotdEditor from "../../components/new_instance/motd-editor.vue"
+    import 'babel-polyfill';
+    import Switch from "vue-switch/switch-2.vue"
     import WebSocket from "../../lib/websocket.js"
     import VueRouter from 'vue-router'
     export default {
         components:{
             "inst-item" : InstanceItem,
             'logo-uploader': LogoUploader,
-            'motd-editor' : MotdEditor
+            'motd-editor' : MotdEditor,
+            'sel-switch': Switch
         },
         name:"NewInstnace",
         data(){
@@ -275,6 +292,7 @@
                 "world_name" : "",
                 "core_file_id" : null,
                 "java_bin_id" : null,
+                "package_id": null,
 
                 /*asserts*/
                 "world_name_assert" : null,
@@ -289,10 +307,13 @@
                 "ftp_account_assert" : true,
                 "ftp_password_assert" : null,
 
-                /*load from ajax*/
+                /* (load from ajax) */
                 "server_cores_list" : [],
                 "java_versions_list" : [],
+                "int_pkg_list" : [],
                 "ftp_account_name" : null,
+                
+                "use_integrated_package" : false,
                 /*miscellaneous*/
                 "default_ftp_password" : true,
                 "ftp_password" : "",
@@ -412,6 +433,8 @@
                 let creat_data = {
                     "inst_name" : that.world_name,
                     "core_file_id" : that.core_file_id,
+                    "package_id" : that.package_id,
+                    "use_integrated_package" : that.use_integrated_package,
                     "java_bin_id" : that.java_bin_id,
                     "listening_port" : that.listen_port,
                     "max_RAM" : parseInt(that.number_RAM),
@@ -437,6 +460,7 @@
                     this.server_cores_list = msg.server_cores;
                     this.java_versions_list = msg.java_versions;
                     this.ftp_account_name = msg.FTP_account_name;
+                    this.int_pkg_list = msg.int_pkgs;
 
                     if(this.server_cores_list.length > 0){
                         this.core_file_id = this.server_cores_list[0]['index'];

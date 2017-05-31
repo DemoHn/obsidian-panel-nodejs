@@ -62,7 +62,7 @@ class JavaBinaryPool {
             cpy_tasks[item] = {
                 "link": this.tasks[item]["link"],
                 "status": this.tasks[item]["status"],
-                "progress": thisdtasks[item]["progress"]
+                "progress": this.tasks[item]["progress"]
             };
         }
 
@@ -881,5 +881,73 @@ module.exports = {
 
             res.success(200);
         }
+    },
+
+    // system java
+    // While downloading java from Oracle's Official link (which always changes!)
+    // we also provide you a way to insert system java executable into list.
+
+    // To add system java, you have to install it globally at the beginning. 
+    detect_system_java: (req, res, next) => {
+        const JavaBinary = model.get("JavaBinary");
+        let java_exec = "java";
+
+        if(/^win/.test(os.platform())){ // if windows
+            java_exec = "java.exe";
+        }
+
+        cp.exec(java_exec + " -version", (err, stdout, stderr) => {
+            if(err){
+                console.log(err);
+                res.error(500);
+            }else if(/java version "(.+)"/i.test(stderr) === true){ // system java has installed
+                // and check if it has been installed already
+                JavaBinary.findOne({where: {bin_directory: java_exec}}).then((data)=>{
+                    if(data != null)
+                        res.success(1); // has installed
+                    else
+                        res.success(0); // can install
+                },(err)=>{
+                    res.error(500);
+                });                
+            }else{
+                res.success(-1); // no such version
+            }
+        });
+    },
+
+    add_system_java: (req, res, next) => {
+        const JavaBinary = model.get("JavaBinary");
+
+        let java_exec = "java";
+        if(/^win/.test(os.platform())){ // if windows
+            java_exec = "java.exe";
+        }
+
+        cp.exec(java_exec + " -version", (err, stdout, stderr) => {
+            if(err){
+                console.log(err);
+                res.error(500);
+            }else if(/java version "(.+)"/i.test(stderr) === true){ // system java has installed
+                const re = /java version ".+\.(.+)\..+_(.+)"/.exec(stderr);
+                const major_ver = re[1];
+                const minor_ver = re[2];
+
+                JavaBinary.create({
+                    major_version: major_ver,
+                    minor_version: minor_ver,
+                    bin_directory: java_exec
+                }).then( (data)=>{
+                    // success
+                    res.success(200);
+                }, (err)=>{
+                    // fail
+                    console.error(err);
+                    res.error(500);
+                })
+            }else{
+                res.success(false);
+            }
+        });
     }
 };

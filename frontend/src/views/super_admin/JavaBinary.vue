@@ -69,6 +69,7 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            <system-java></system-java>
                         </div>
                     </div>
                 </div>
@@ -81,6 +82,7 @@
     import WebSocket from "../../lib/websocket.js"
     import Loading from '../../components/c-loading.vue';
     import LoadError from '../../components/c-error.vue';
+    import SystemJava from '../../components/java_binary/system-java.vue';
     const WAIT = 1,
 DOWNLOADING = 2,
 EXTRACTING = 3,
@@ -93,6 +95,7 @@ export default {
     components:{
         'c-loading': Loading,
         'load-error': LoadError,
+        'system-java': SystemJava
     },
     data : function(){
         return {

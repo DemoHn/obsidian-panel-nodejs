@@ -24,4 +24,9 @@ router.get("/start_download_java", core_ctrl.start_download_java);
 // NOTICE: only for test NOW!
 router.post("/__add_java_version", core_ctrl.add_java_version);
 
+// detect system java
+router.get("/detect_system_java", core_ctrl.detect_system_java);
+
+// add system java
+router.get("/add_system_java", core_ctrl.add_system_java);
 module.exports = router;
