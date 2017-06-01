@@ -104,7 +104,7 @@ span.gap{
     margin-left: 1rem;
 }
 div.box-btn-container{
-    height: 3.8rem;
+    height: 3.3rem;
     width: 100%;
     border-bottom: 1px solid #dedede;
 }

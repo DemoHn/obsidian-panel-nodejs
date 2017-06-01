@@ -478,6 +478,7 @@ module.exports = {
             "server_cores_list" : [],
             "java_versions_list" : [],
 
+            "use_integrated_package" : false,
             "core_file_id" : null,
             "java_bin_id" : null,
             // server properties
@@ -507,7 +508,7 @@ module.exports = {
                         _model.number_RAM = data.max_RAM;
                         _model.world_name = data.inst_name;
                         _model.listen_port = data.listening_port;
-
+                        _model.use_integrated_package = data.use_integrated_package;
                         // core_id & java_bin_id
                         _model.core_file_id = data.core_file_id;
                         _model.java_bin_id = data.java_bin_id;
@@ -936,6 +937,9 @@ module.exports = {
         let server_cores  = [];
         let int_pkgs = [];
 
+        let use_integrated_package = false;
+
+        let inst_id = req.params.inst_id;
         // empty function ,for reject callback
         const _empty_func = ()=>{};
 
@@ -1054,7 +1058,7 @@ module.exports = {
                         java_versions: java_versions,
                         server_cores: server_cores,
                         int_pkgs: int_pkgs,
-                        FTP_account_name: ftp_user_name
+                        FTP_account_name: ftp_user_name                        
                     }
 
                     res.success(rtn_model);

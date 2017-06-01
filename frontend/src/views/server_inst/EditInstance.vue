@@ -1,7 +1,7 @@
 <template lang="html">
     <div class="wrap">
         <div class="row" style="max-width: 1350px;">
-            <div class="col-md-3" style="max-width: 24rem;">
+            <div class="col-md-3" style="max-width: 21rem;">
                 <div class="box box-default box-solid">
                     <div class="box-header with-border">
                         <h3 class="box-title" style="font-size: 16px;">编辑</h3>
@@ -68,7 +68,8 @@
                             <span slot="title">服务器核心</span>
                             <div slot="description">选择用于启动服务器的核心。如果服务器已经运行，不建议随意更换。重启服务器方能生效。</div>
                             <div slot="body">
-                                <select name="core_file_id" class="form-control" v-model="core_file_id" @change="edit_config('core_file_id')">
+                                <div v-if="use_integrated_package"><i>暂不支持替换整合包的核心</i></div>
+                                <select v-if="!use_integrated_package" name="core_file_id" class="form-control" v-model="core_file_id" @change="edit_config('core_file_id')">
                                     <option :value="null" v-if="server_cores_list.length === 0">-- 还没有选择 --</option>
                                     <option :value="item['index']" v-for="item in server_cores_list">{{ item['name'] }}</option>
                                 </select>
@@ -295,6 +296,7 @@ export default {
             'inst_id' : this.$route.params.id,
             'init_conf' : {},
 
+            'use_integrated_package': false, 
             // core & java version
             "server_cores_list" : [],
             "java_versions_list" : [],
@@ -404,17 +406,7 @@ export default {
     mounted(){
         let v = this;
         this.aj_get_init_data((msg)=>{
-            /*
-            // replace "-" -> "_" in server_properties
-            // e.g. : "online-mode" -> "online_mode"
-            for(let key in msg["server_properties"]){
-                if(key.indexOf("-") >= 0){
-                    let new_key = key.replace(/-/g, "_");
-                    msg["server_properties"][new_key] = msg["server_properties"][key];
-                    delete msg["server_properties"][key];
-                }
-            }
-            */
+
             msg["ftp_password"] = {
                 "default" : msg["default_ftp_password"],
                 "password" : msg["ftp_password"]
@@ -449,7 +441,7 @@ input.w-input{
 
 div.setting-item{
     width:100%;
-    min-height: 6rem !important;
+    min-height: 5rem !important;
     padding: 0.5rem 2rem 0.5rem 0 !important;
     display: inline-block;
 }
@@ -469,8 +461,8 @@ div.conf_category{
     padding-left: 1.5rem;
     border-bottom: 1px solid #dedede;
     box-sizing: border-box;
-    height: 4rem;
-    line-height: 3.5rem;
+    height: 3.6rem;
+    line-height: 3rem;
 }
 
 div.conf_category a{
@@ -483,7 +475,7 @@ div.conf_category.selected{
 
 button.back{
     width: 100%;
-    line-height: 4rem;
+    line-height: 3.5rem;
     font-size: 15px;
     text-align: center;
     background: #fcfcfc;
