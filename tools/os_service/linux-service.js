@@ -1,16 +1,14 @@
 var Service = require('node-service-linux').Service;
-
+var utils = require("../../utils");
+//
 // Create a new service object
 var svc = new Service({
-    name:'obsidian-panel',
+    name:'obsidian_panel',
     description: 'An advanced Minecraft Server Panel.',
-    script: '/path/to/helloworld.js'
+    execbin: process.execPath,
+    outlog: utils.get_config()['global']['log_file'], 
+    errlog: utils.get_config()['global']['log_file'] 
 });
 
-// Listen for the "install" event, which indicates the
-// process is available as a service.
-svc.on('install',function(){
-    svc.start();
-});
-
-svc.install();
+console.log(process.execPath)
+module.exports = svc;

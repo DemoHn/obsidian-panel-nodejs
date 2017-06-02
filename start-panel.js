@@ -152,6 +152,7 @@ const sync_model = () => {
 }
 
 const argv = process.argv;
+
 if(argv[2] === "-t"){
     // run independent tools using child_process.fork
     const module_name = argv[3];
@@ -190,6 +191,8 @@ if(argv[2] === "-t"){
             // process `launch_process` is included in `sync_model`!
             sync_model();
         }
+    }else{
+      console.log("[ERR-CFGERR] Check config error!");
     }
 }
 

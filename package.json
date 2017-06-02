@@ -55,6 +55,7 @@
     ],
     "assets": [
       "./static/**/*",
+      "./node_modules/node-service-linux/lib/templates/**/*",
       "config.yml.sample",
       "package.json",
       "./tools/**/*.js"

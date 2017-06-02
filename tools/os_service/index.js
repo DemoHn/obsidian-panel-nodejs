@@ -107,15 +107,63 @@ if (os.platform() === "win32") {
   }
 } else {
   // Linux Version
+  const svc = require("./linux-service");
+  
+  svc.on('install', () => {
+    svc.enable();
+    console.log('[SVC] obsidian-panel installed!');
+    process.exit(0);    
+  });
 
-  if (command === "install") {
+  svc.on('alreadyinstalled', () => {
+    console.log('[SVC] obsidian-panel has already installed!');
+    process.exit(0);    
+  });
 
+  svc.on('start', () => {
+    console.log('[SVC] obsidian-panel started!');
+    process.exit(0);
+  });
+ 
+  svc.on('stop', () => {
+    console.log('[SVC] obsidian-panel stopped!');
+    process.exit(0);
+  });
+
+  svc.on('uninstall', () => {
+    console.log('[SVC] obsidian-panel uninstalled!');
+    process.exit(0);
+  });
+  // errors
+  svc.on('doesnotexist', () => {
+    console.log("[SVC] service 'obsidian_panel' does not exist! You have to install it at the beginning!");
+    process.exit(-1); // service does not exist!
+  });
+
+  svc.on('invalidinstallation', () => {
+    console.log("[SVC] Invalid installation!");
+    process.exit(-2); // invalid installation 
+  });
+
+  svc.on('error', () => {
+    console.log("[SVC] fatal error!");
+    process.exit(-3);
+  });
+
+  if (command == "install"){
+    svc.install();
   } else if (command === "start") {
-
+    svc.start();
   } else if (command === "stop") {
-
+    svc.stop();
   } else if (command === "status") {
-
+    console.log("[SVC] TODO");
+    process.exit(0);
+  } else if (command === "uninstall") {
+    svc.uninstall();
+  }else{
+    console.log(`invalid command: ${command}`);
+    process.exit(-4);
   }
 }
 
