@@ -44,8 +44,6 @@ banner(){
   echo "|                                 v 0. 6. 1                                    |"
   echo "+------------------------------------------------------------------------------+"
   echo ""
-  echo "                           Welcome to Obsidian-Panel!                           "
-  echo ""
 }
 
 install_panel(){
@@ -63,9 +61,12 @@ install_panel(){
       [y]* ) 
         echo "[PANEL] Installing `ob-panel`..."
         ln -s $DIR/ob-panel.sh /usr/sbin/ob-panel
+        install
+        echo "[PANEL] Install finish! Now you can type `ob-panel start` to launch the panel!"
         ;;
       * )
         exit 1
+        ;;
   else
     echo "[PANEL] The `ob-panel` has been installed to your local machine successfully!"
     echo "        To start/stop the panel, you can type `ob-panel start/stop` directly!"
@@ -75,18 +76,23 @@ install_panel(){
 
 case $1 in
   install)
+    banner
     install_service
     ;;
   uninstall)
+    banner
     uninstall_service
     ;;
   start)
+    banner
     start
     ;;
   stop)
+    banner
     stop
     ;;
   restart)
+    banner
     restart
     ;;
   debug)
