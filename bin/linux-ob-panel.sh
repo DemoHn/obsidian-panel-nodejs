@@ -6,11 +6,11 @@ EXEC_BIN=$DIR/bin/obsidian
 
 # sub-commands
 
-install(){
+install_service(){
   $EXEC_BIN -t os_service --command=install
 }
 
-uninstall(){
+uninstall_service(){
   $EXEC_BIN -t os_service --command=uninstall
 }
 
@@ -30,3 +30,68 @@ restart(){
 debug(){
   $EXEC_BIN
 }
+
+banner(){
+  echo "+------------------------------------------------------------------------------+"
+  echo "|  __  ____  ____  __  ____  __   __   __ _      ____   __   __ _  ____  __    |"  
+  echo "| /  \(  _ \/ ___)(  )(    \(  ) / _\ (  ( \ ___(  _ \ / _\ (  ( \(  __)(  )   |"
+  echo "|(  O )) _ (\___ \ )(  ) D ( )( /    \/    /(___)) __//    \/    / ) _) / (_/\ |"
+  echo "| \__/(____/(____/(__)(____/(__)\_/\_/\_)__)    (__)  \_/\_/\_)__)(____)\____/ |"
+  echo "|                                                                              |"
+  echo "|                              OBSIDIAN - PANEL                                |"
+  echo "|                                BY NIGSHOXIZ                                  |"
+  echo "|                                    2017                                      |"
+  echo "|                                 v 0. 6. 1                                    |"
+  echo "+------------------------------------------------------------------------------+"
+  echo ""
+  echo "                           Welcome to Obsidian-Panel!                           "
+  echo ""
+}
+
+install_panel(){
+  banner
+  
+  if ! [ $(id -u) -ne 0 ]; then
+    echo "[PANEL] You're required to run this script as root!"
+    exit 2
+  fi
+
+  # if ob-panel has not been installed
+  if ! [ -x "$(command -v ob-panel)" ]; then
+    read -p "[PANEL] The `ob-panel` command has not installed! Would you like install it? [y/N]" yn
+    case $yn in
+      [y]* ) 
+        echo "[PANEL] Installing `ob-panel`..."
+        ln -s $DIR/ob-panel.sh /usr/sbin/ob-panel
+        ;;
+      * )
+        exit 1
+  else
+    echo "[PANEL] The `ob-panel` has been installed to your local machine successfully!"
+    echo "        To start/stop the panel, you can type `ob-panel start/stop` directly!"
+    echo "        Also, if you want to check `help`, type `ob-panel help` instead!"
+  fi
+}
+
+case $1 in
+  install)
+    install_service
+    ;;
+  uninstall)
+    uninstall_service
+    ;;
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    restart
+    ;;
+  debug)
+    debug
+    ;;
+  *)
+    install_panel
+esac

@@ -65,9 +65,22 @@ for(let i=0;i<fs.readdirSync(os_spec_dir).length;i++){
     let file_name = fs.readdirSync(os_spec_dir)[i];
     fs.copySync(path.resolve(os_spec_dir, file_name), path.resolve(__dirname, "../dist/bin", file_name));
 }
+// 7. copy os-specific launcher binaries to dist
+let launcher_dir = path.resolve(__dirname);
+let launcher_dir_files = fs.readdirSync(launcher_dir);
 
-// 7. copy config.yml
+for(let i=0;i<launcher_dir_files.length;i++){
+    let file_name = launcher_dir_files[i];
+    let prefix_re = new RegExp(`^${os_name}-(.*)`);
+    
+    if(prefix_re.test(file_name)){
+        let f = prefix_re.exec(file_name)[1];
+        fs.copySync(path.resolve(launcher_dir, file_name), path.resolve(__dirname, "../dist", f));
+    }
+}
+
+// 8. copy config.yml
 fs.copySync(path.resolve(__dirname, `../config.yml.sample`), path.resolve(__dirname, "../dist/bin/config.yml"));
 
-// 8. touch .startup.lck
+// 9. touch .startup.lck
 fs.writeFileSync(path.resolve(__dirname, "../dist/bin/.startup.lck"),"", {flag:"w+"});
