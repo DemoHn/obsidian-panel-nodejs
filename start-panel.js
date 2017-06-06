@@ -111,7 +111,7 @@ const launch_process = () => {
     const server = require("./app").server;
     const ftp_manager = require("./app").ftp_manager;
 
-    process.on('SIGTERM', () => {
+    const gracefully_exit = () => {
         // TODO
         console.log("[INFO] terminate ftp_manager");
         ftp_manager.kill("SIGTERM");
@@ -120,7 +120,12 @@ const launch_process = () => {
             console.log("[INFO] terminate server");
             process.exit(0);
         });
-    });
+    };
+
+    // process quitting events
+    process.on('exit', gracefully_exit);
+    process.on('SIGINT', gracefully_exit);
+    process.on('uncaughtException', gracefully_exit);
 
     let config = utils.get_config();
     let server_port = config["server"]["listen_port"];
