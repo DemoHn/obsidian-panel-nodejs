@@ -38,7 +38,12 @@ module.exports = (target, type, callback) => {
         if(/^win/.test(os.platform())){
             exec_name = "7za.exe";
         }else{
-            exec_name = "./7za";
+            // and get linux arch
+            if(/64/.test(process.arch)){
+                exec_name = "./7za-x64";
+            }else{
+                exec_name = "./7za-x86"
+            }
         }
 
         let proc = cp.exec(`${exec_name} l ${target}`, {encoding: null}, (err, stdout, stderr) => {

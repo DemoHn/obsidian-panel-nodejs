@@ -2,7 +2,11 @@
 
 DIR=$(dirname $([ -L $0 ] && readlink -f $0 || echo $0))
 
-EXEC_BIN=$DIR/bin/obsidian
+_realpath () {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+EXEC_BIN=$(_realpath ./bin/obsidian)
 
 # sub-commands
 
@@ -60,7 +64,7 @@ install_panel(){
     case $yn in
       [y]* ) 
         echo "[PANEL] Installing `ob-panel`..."
-        ln -s $DIR/ob-panel.sh /usr/sbin/ob-panel
+        ln -s $(_realpath ./ob-panel.sh) /usr/sbin/ob-panel
         install
         echo "[PANEL] Install finish! Now you can type `ob-panel start` to launch the panel!"
         ;;
