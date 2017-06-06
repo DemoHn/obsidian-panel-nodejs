@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DIR=$(dirname $([ -L $0 ] && readlink -f $0 || echo $0))
 
@@ -6,7 +6,7 @@ _realpath () {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 
-EXEC_BIN=$(_realpath ./bin/obsidian)
+EXEC_BIN=$DIR/bin/obsidian
 
 # sub-commands
 
@@ -60,22 +60,22 @@ install_panel(){
 
   # if ob-panel has not been installed
   if ! [ -x "$(command -v ob-panel)" ]; then
-    read -p "[PANEL] The `ob-panel` command has not installed! Would you like install it? [y/N]" yn
+    read -p "[PANEL] The \`ob-panel\` command has not installed! Would you like install it? [y/N]" yn
     case $yn in
       [y]* ) 
-        echo "[PANEL] Installing `ob-panel`..."
+        echo "[PANEL] Installing \`ob-panel\`..."
         ln -s $(_realpath ./ob-panel.sh) /usr/sbin/ob-panel
-        install
-        echo "[PANEL] Install finish! Now you can type `ob-panel start` to launch the panel!"
+        install_service
+        echo "[PANEL] Install finish! Now you can type \`ob-panel start\` to launch the panel!"
         ;;
       * )
         exit 1
         ;;
     esac
   else
-    echo "[PANEL] The `ob-panel` has been installed to your local machine successfully!"
-    echo "        To start/stop the panel, you can type `ob-panel start/stop` directly!"
-    echo "        Also, if you want to check `help`, type `ob-panel help` instead!"
+    echo "[PANEL] The \`ob-panel\` has been installed to your local machine successfully!"
+    echo "        To start/stop the panel, you can type \`ob-panel start/stop\` directly!"
+    echo "        Also, if you want to check \`help\`, type \`ob-panel help\` instead!"
   fi
 }
 
@@ -105,4 +105,5 @@ case $1 in
     ;;
   *)
     install_panel
+    ;;
 esac

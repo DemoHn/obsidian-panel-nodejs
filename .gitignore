@@ -5,3 +5,5 @@ env/
 .vscode/
 dist/
 config.yml
+static/css/*.app-*.css
+static/js/*
