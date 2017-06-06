@@ -49,7 +49,7 @@ banner(){
 install_panel(){
   banner
   
-  if ! [ $(id -u) -ne 0 ]; then
+  if [ $(id -u) -ne 0 ]; then
     echo "[PANEL] You're required to run this script as root!"
     exit 2
   fi
@@ -67,6 +67,7 @@ install_panel(){
       * )
         exit 1
         ;;
+    esac
   else
     echo "[PANEL] The `ob-panel` has been installed to your local machine successfully!"
     echo "        To start/stop the panel, you can type `ob-panel start/stop` directly!"
