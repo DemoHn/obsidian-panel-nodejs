@@ -50,7 +50,6 @@
       "./app/**/*.js",
       "./tools/**/*.js",
       "./ftp_manager/**/*.js",
-      "./node_modules/shelljs/src/*.js",
       "start-panel.js"
     ],
     "assets": [

@@ -109,9 +109,20 @@ const check_config = () => {
 
 const launch_process = () => {
     const server = require("./app").server;
+    const ftp_manager = require("./app").ftp_manager;
+
+    process.on('SIGTERM', () => {
+        // TODO
+        console.log("[INFO] terminate ftp_manager");
+        ftp_manager.kill("SIGTERM");
+
+        ftp_manager.on('close', () => {
+            console.log("[INFO] terminate server");
+            process.exit(0);
+        });
+    });
 
     let config = utils.get_config();
-    
     let server_port = config["server"]["listen_port"];
     // start (listen) the process
     console.log("[INFO] Start panel!");
