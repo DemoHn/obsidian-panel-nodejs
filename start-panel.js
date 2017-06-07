@@ -115,16 +115,14 @@ const launch_process = () => {
         // TODO
         console.log("[INFO] terminate ftp_manager");
         ftp_manager.kill("SIGTERM");
-
-        ftp_manager.on('close', () => {
-            console.log("[INFO] terminate server");
-            process.exit(0);
-        });
+        
+        console.log("[INFO] terminate server");
+        process.exit(0);
     };
 
     // process quitting events
-    process.on('exit', gracefully_exit);
     process.on('SIGINT', gracefully_exit);
+    process.on('SIGTERM', gracefully_exit);
     process.on('uncaughtException', gracefully_exit);
 
     let config = utils.get_config();

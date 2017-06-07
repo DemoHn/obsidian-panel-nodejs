@@ -3,9 +3,10 @@ var utils = require("../../utils");
 //
 // Create a new service object
 var svc = new Service({
-    name:'obsidian_panel',
+    name:'obsidianpanel',
     description: 'An advanced Minecraft Server Panel.',
     execbin: process.execPath,
+    procname: "obsidian",
     outlog: utils.get_config()['global']['log_file'], 
     errlog: utils.get_config()['global']['log_file'] 
 });
