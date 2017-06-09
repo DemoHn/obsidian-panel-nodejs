@@ -1,86 +1,52 @@
 <template lang="html">
     <div>
-    <c-loading v-if="loading_status == 5"></c-loading>
-    <c-error v-if="loading_status == 7"></c-error>
-    <ul class="progress" v-if="loading_status == 6"><li id="progress-status">
-            <div class="pg-title" style="color: #27b427;">运行状态</div>
+        <div class="frame-c" v-show="loading_status == 5"><c-loading></c-loading></div>
+        <div class="frame-c" v-show="loading_status == 7"><c-error></c-error></div>
+        <div v-show="loading_status == 6" class="frame">
+            <!-- title -->
+            <table class="full-width" style="height: 2rem;">
+                <tr>
+                    <td><div class="pg-title" style="color: #27b427;">运行状态</div></td>
+                    <td><div class="pg-title" style="color: blue;">在线用户</div></td>
+                    <td><div class="pg-title" style="color: #ff4f38;">RAM</div></td>
+                    <td><div class="pg-title" style="color: #ff4f38;">CPU</div></td>
+                </tr>
+            </table>
+            <!-- content -->
+            <canvas id="canvas" ref="c" ></canvas>
+            <!-- text info -->
+            <table class="full-width" style="height: 3rem;">
+                <tr>
+                    <td>
+                        <div class="pg-info">
+                            <!-- status text-->
+                            <span v-if="work_status == 0">未 启 动</span>
+                            <span v-if="work_status == 1">启 动 中</span>
+                            <span v-if="work_status == 2">运 行 中</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pg-info">
+                            <span class="hint-text">在线人数： </span><span class="em_2_text">{{ current_player }}</span>
+                        </div>
 
-            <div class="pg-main" v-if="work_status == 0">
-                <svg id="svg-halt" viewBox="-10 -10 220 220">
-                    <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="#27b427"></path>
-                    <path d="M 50 100 L 150 100" stroke="#27b427" stroke-width="3"></path>
-                </svg>
-            </div>
-            <div class="pg-main" v-else-if="work_status == 1">
-                <div>
-                    <svg id="stop" viewBox="-10 -10 220 220">
-                        <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                        <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                        <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                        <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                    </svg>
-                    <svg id="stop-rev" viewBox="-10 -10 220 220">
-                        <circle r="85" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
-                        <circle r="15" cx="50" cy="100" stroke="#fff" stroke-width="6"></circle>
-                        <circle r="15" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
-                        <circle r="15" cx="150" cy="100" stroke="#fff" stroke-width="6"></circle>
-                    </svg>
-                </div>
-            </div>
-            <div class="pg-main" v-else-if="work_status == 2">
-                <svg id="svg-running" viewBox="-10 -10 220 220">
-                    <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
-                    <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
-                </svg>
-            </div>
+                        <div class="pg-info">
+                            <span class="hint-text">最大容量： </span><span class="em_2_text">{{ total_player }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pg-info">
+                            <span class="hint-text">已用内存： </span><span>{{ current_RAM }}</span>&nbsp;<span>G</span>
+                        </div>
 
-            <div class="pg-info">
-                <!-- status text-->
-                <span v-if="work_status == 0">未 启 动</span>
-                <span v-if="work_status == 1">启 动 中</span>
-                <span v-if="work_status == 2">运 行 中</span>
-            </div>
-
-        </li><li id="progress-online-users">
-            <div class="pg-title" style="color: blue;">在线用户</div>
-            <div class="pg-main">
-                <svg id="online-users-svg" viewBox="-10 -10 220 220">
-                    <path :d="circle_paths[0]" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
-                </svg>
-
-                <div id="online-num" class="central-number">{{ current_player }}</div>
-                <div id="divider" class="central-number">／</div>
-                <div id="total-num" class="central-number">{{ total_player }}</div>
-            </div>
-
-            <div class="pg-info">
-                <span class="hint-text">在线人数： </span><span class="em_2_text">{{ current_player }}</span>
-            </div>
-
-            <div class="pg-info">
-                <span class="hint-text">最大容量： </span><span class="em_2_text">{{ total_player }}</span>
-            </div>
-        </li><li id="progress-RAM-usage">
-            <div class="pg-title" style="color: #ff4f38;">RAM 消耗</div>
-            <div class="pg-main">
-                <svg id="RAM-usage-svg" viewBox="-10 -10 220 220">
-                    <path :d="circle_paths[1]" stroke="#ff4f38" stroke-width="15" stroke-dashoffset="0"></path>
-                </svg>
-
-                <div id="RAM-percent">{{ RAM_percent }}</div>
-                <div id="RAM-percent-mark">%</div>
-            </div>
-
-            <div class="pg-info">
-                <span class="hint-text">已用内存： </span><span>{{ current_RAM }}</span>&nbsp;<span>G</span>
-            </div>
-
-            <div class="pg-info">
-                <span class="hint-text">最大内存： </span><span>{{ max_RAM }}</span>&nbsp;<span>G</span>
-            </div>
-        </li>
-        <!--  Item  -->
-    </ul>
+                        <div class="pg-info">
+                            <span class="hint-text">最大内存： </span><span>{{ max_RAM }}</span>&nbsp;<span>G</span>
+                        </div>
+                    </td>
+                    <td> <div class="pg-info">233</div></td>
+                </tr>
+            </table>
+        </div>
     </div>
 </template>
 
@@ -95,10 +61,10 @@ const RUNNING = 2;
 import Loading from "../../components/c-loading.vue";
 import LoadingError from "../../components/c-error.vue";
 import WebSocket from "../../lib/websocket";
-import Vivus from 'vivus';
+import SevenSegment from "../../lib/seven-segment.js";
 
 let ws = new WebSocket();
-export default {
+let vm = {
     components:{
         'c-loading' : Loading,
         'c-error': LoadingError
@@ -107,28 +73,90 @@ export default {
     data(){
         return {
             work_status: null,
-            current_player: "--",
-            total_player: "--",
-            current_RAM: "--",
-            max_RAM: "--",
-            RAM_percent: "--",
-            loading_status : LOADING,
-            circle_paths:["", ""]
+            current_player: null,
+            total_player: null,
+            current_RAM: null,
+            max_RAM: null,
+            RAM_percent: null,
+            loading_status : LOAD_SUCCESS,
+
+            _canvas: null,
+            _current_animation_flag: null,
+            _canvas_width : null
         }
     },
+    watch:{
+        work_status(val, old_val){
+            this._set_status(val);
+
+            if(old_val != null){
+                if(val == HALT || val == STARTING){
+                    this.current_player = "--";
+                    this.current_RAM = "--";
+                }else if(val == RUNNING && old_val == STARTING){
+                    this.current_player = 0;
+                    this.current_RAM = 0;
+                }
+            }            
+        },
+
+        current_player(val){
+            this._set_online_player(val);
+        },
+
+        current_RAM(val){
+            this._set_RAM(val);
+        }
+    },
+
     methods:{
         // retrieve data from list
         // val = msg.val
+
+        // $ref API
+        set_status(status){
+            if(status == STARTING || status == RUNNING){
+                this.work_status = status;
+            }else{
+                this.work_status = HALT;
+            }
+            // _set_status(); <-- this function will be triggered when variable changed.
+        },
+
+        // $ref API
+        set_online_player(player){
+            this.current_player = player;
+        },
+
+        // $ ref API
+        set_RAM(RAM){
+            RAM = String(RAM);
+
+            if(RAM.indexOf("-") >= 0){
+                this.current_RAM = RAM;
+            }else{
+                this.current_RAM = parseFloat(RAM).toFixed(2);
+            }
+        },
+
+        // status: "loading"
+        set_loading_status(is_loading){
+            if(is_loading){
+                this.loading_status = LOADING;
+            }else{
+                this.loading_status = LOAD_SUCCESS;
+            }
+        },
+
         // $ref API
         init_status_list(val){
             this.loading_status = LOAD_SUCCESS;
             //$watch function will help us do some update work
-            this.work_status = val.status;
-            //update
+            
             if(val.current_player != -1){
-                let ratio = val.current_player / val.total_player;
-                this.current_player = val.current_player;
-                this._update_loop(0, ratio);
+                this.set_online_player(val.current_player);
+            }else{
+                this.set_online_player("--");
             }
 
             if(val.total_player != -1){
@@ -140,171 +168,391 @@ export default {
             }
 
             if(val.RAM != -1){
-                this.current_RAM = val.RAM.toFixed(1);
-                let ratio = val.RAM / val.total_RAM;
-                this.RAM_percent = (ratio * 100).toFixed(0);
-                this._update_loop(1, ratio);
-            }
-        },
-        // set variables
-        // $ref API
-        set_status(status){
-            if(status == STARTING || status == RUNNING){
-                this.work_status = status;
+                this.set_RAM(val.RAM);
             }else{
-                this.work_status = HALT;
+                this.set_RAM("--");
             }
+
+            this.work_status = val.status;
         },
 
-        // $ref API
-        set_online_player(player){
-            this.current_player = player;
-            let _ratio = (player / this.total_player);
-            this._update_loop(0, _ratio);
+        _redraw_canvas(){
+            this._canvas.width = this._canvas.offsetWidth;
+            this._canvas.height = this._canvas.offsetHeight;
+            // flush
+            this._flush_canvas_part(1);
+            this._flush_canvas_part(2);
+            this._flush_canvas_part(3);
+            this._flush_canvas_part(4);
+
+            // draw
+            this._set_status(this.work_status);
+            this._set_online_player(this.current_player);
+            this._set_RAM(this.current_RAM);
         },
 
-        // $ ref API
-        set_RAM(RAM){
-            this.current_RAM = RAM.toFixed(2);
-            if(Number.isInteger(this.max_RAM)){
-                let ratio = (RAM / this.max_RAM);
-                this.RAM_percent = (ratio*100).toFixed(0);
-                this._update_loop(1, ratio);
-            }else{
-                this._update_loop(1, 0);
-            }
+        _flush_canvas_part(part_num){
+            const canvas = this._canvas;
+            const _width = canvas.width / 4,
+                  _height = canvas.height,
+                  _part_index = parseInt(part_num) - 1;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(_part_index * _width, 0, (_part_index + 1) * _width, _height);
+
+            return [_width, _height, _part_index * _width]; // [<width>, <height>, <start_x>]
         },
-        // status: "loading"
-        set_loading_status(is_loading){
-            if(is_loading){
-                this.loading_status = LOADING;
-            }else{
-                this.loading_status = LOAD_SUCCESS;
-            }
+
+        _draw_arc(center_x, center_y, radius, color, angle, line_width = 10, bg_color = "#efefef", start_angle = 90){ // angle: 0-360deg
+
+            const context = this._canvas.getContext('2d'); 
+
+            // draw bg_arc
+            context.beginPath();
+            context.arc(center_x, center_y, radius, 1.5*Math.PI, 3.5 * Math.PI, false);
+            context.lineWidth = line_width;
+
+            // line color
+            context.strokeStyle = bg_color;
+            context.stroke();
+
+            // draw value arc
+            context.beginPath();
+            context.arc(center_x, center_y, radius, (start_angle + 180) / 180 * Math.PI, (angle +start_angle + 180)/180 * Math.PI, false);
+            context.lineWidth = line_width;
+
+            // line color
+            context.strokeStyle = color;
+            context.stroke();
         },
-        reset(){
-            this.work_status = HALT;
-            this.current_player = "-";
-            this.current_RAM = "-";
-            this.RAM_percent = "--";
-            this._update_loop(0,0);
-            this._update_loop(1,0);
-        },
+
         // index = 0 ==> online players, index = 1 ==> RAM usages
-        _update_loop(index, ratio){
-            let polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
-                var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-                return {
-                    x: centerX + (radius * Math.cos(angleInRadians)),
-                    y: centerY + (radius * Math.sin(angleInRadians))
-                };
+        _update_graph(index, value, ratio){
+            let _v;
+            let seg_config = {
+                HW_ratio : 2.1,
+                // about stroke
+                stroke_width: 3.5,
+                stroke_gap: 0.8,
+
+                // digit
+                digit_width: 16.0,
+                digit_gap: 2.0,
+
+                // color
+                color: "blue",
+                background_color: "#fafafa"
+            };
+
+            value = String(value);
+            ratio = String(ratio);
+
+            let v = this;
+
+            switch(index){
+                case 0:
+                    break;
+                case 1: // update current user
+                    
+                    let update_graph_1 = () => {
+                        let coor_arr = v._flush_canvas_part(2);
+                        let start_x = coor_arr[2],
+                            _height = coor_arr[1],
+                            _width  = coor_arr[0];
+                        
+                        let angle = 0;
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        if(ratio !== null && /\-/.test(ratio) === false){
+                            angle = parseFloat(ratio) * 360;
+                        }
+                        let   _center_x = start_x + _width / 2,
+                            _center_y = _height / 2;
+                        v._draw_arc(_center_x, _center_y, _radius, "#0011FF", angle, 8, "#fafafa");
+
+                        // draw digit
+                        seg_config["color"] = "#0011FF";
+                        let seg = new SevenSegment(v._canvas, _center_x, _center_y, seg_config);
+                        seg.draw_digits(value); // to ensure value is a string
+                    };
+                    update_graph_1();
+                    break;
+                case 2:
+                    let update_graph_2 = () => {
+                        let coor_arr = v._flush_canvas_part(3),
+                             start_x = coor_arr[2],
+                             _height = coor_arr[1],
+                             _width  = coor_arr[0];
+                        
+                        let angle = 0;
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        if(ratio !== null && ratio.indexOf("-") < 0){
+                            angle = parseFloat(ratio) * 360;
+                        }
+
+                        let _center_x = start_x + _width / 2,
+                            _center_y = _height / 2;
+                        v._draw_arc(_center_x, _center_y, _radius, "red", angle, 8, "#fafafa");
+
+                        // draw digit
+                        seg_config["color"] = "red";
+                        let seg = new SevenSegment(v._canvas, _center_x, _center_y, seg_config);
+                        let _v;
+                        if(value.indexOf("-") < 0){
+                            _v = Math.round(parseFloat(value) * 100) + "";
+                        }else{
+                            _v = value;
+                        }
+                        seg.draw_digits(_v); // to ensure value is a string
+                    }
+                    update_graph_2();
+                    break;
+                case 3:
+                    break;
+                default:
+                    break;
             }
-
-            let describeArc = (x, y, radius, startAngle, endAngle) => {
-                var end = polarToCartesian(x, y, radius, endAngle);
-                var start = polarToCartesian(x, y, radius, startAngle);
-                var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-                var d = [
-                    "M", start.x, start.y,
-                    "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
-                ].join(" ");
-
-                return d;
-            }
-
-            this.circle_paths[index] = describeArc(100, 100, 85, 0, 360 * ratio);
         },
-        _UI_animation(work_status){
-            switch (work_status){
-            case 0:
-                new Vivus('svg-halt', {duration: 30 , type:"sync"});
-                break;
-            case 1:
-                let wa;
-                let tr;
-                function trig_rev() {
-                    setTimeout(function () {
-                        tr.play();
-                    },400);
-                }
-                function trig_wait() {
-                    tr.reset();
-                    wa.reset();
-                    wa.play();
-                }
 
-                wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
-                tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
-                trig_wait();
-                break;
-            case 2:
-                new Vivus('svg-running', {duration: 30 , type:"sync"});
-                break;
-            default:
-                break;
+        _UI_animation(work_status){
+            let v = this;
+            let ctx = this._canvas.getContext("2d");
+
+            // stroke width
+            ctx.stroke_width = 1;
+            // clear animation flag to make sure it is working
+            if(this._current_animation_flag != null)
+                clearInterval(this._current_animation_flag);
+            
+            let coor_arr = this._flush_canvas_part(1);
+            let start_x = coor_arr[2],
+                _height = coor_arr[1],
+                _width  = coor_arr[0];
+            
+            switch (work_status){
+                case 0:
+                    let status_0 = () => {
+                        let _state = "START"; // or "CIRCLE" or "LINE" or "END"
+                        let _ratio = 0;
+
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        this._current_animation_flag = setInterval(() => {
+                            // flush the canvas to get a better circle
+                            if(_state != "END")
+                                this._flush_canvas_part(1);
+
+                            if(_state === "START"){
+                                _state = "CIRCLE";
+                                _ratio = 0.0;
+                            }else if(_state === "CIRCLE"){
+                                _ratio += 0.018;
+                                
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 360, 1, "transparent");
+                                if(_ratio >= 1){
+                                    _state = "LINE";
+                                    _ratio = 0;
+                                }
+                            }else if(_state === "LINE"){
+                                // don't forget the original circles
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", 360, 1, "transparent");
+
+                                _ratio += 0.08;
+
+                                let circle_width = _radius;
+                                ctx.strokeStyle = "#27b427";
+                                ctx.beginPath();
+                                ctx.moveTo(start_x + _width / 2 - circle_width/2, _height / 2);
+                                ctx.lineTo(start_x + _width / 2 - circle_width/2 + circle_width * _ratio , _height / 2);
+                                ctx.stroke();
+                                if(_ratio >= 1)
+                                    _state = "END";
+                            }else if(_state === "END"){
+                                clearInterval(this._current_animation_flag);
+                            }
+                        },10);
+                    };
+                    status_0();
+                    break;
+                case 1:
+                    let status_1 = () => {
+                        let _state = "START"; // or "CIRCLE" or "FLUSH_CIRCLE" or "END"
+                        let _ratio = 0;
+                        let _wait_count = 20;
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        this._current_animation_flag = setInterval(() => {
+                            // flush the canvas to get a better circle
+
+                            if(_state === "START"){
+                                _state = "CIRCLE";
+                                _ratio = 0.0;
+                            }else if(_state === "CIRCLE"){
+                                if(_ratio >= 1){
+                                    _state = "FLUSH_CIRCLE_WAIT";
+                                    _ratio = 0;
+                                }else{
+                                    this._flush_canvas_part(1);
+                                }
+                                _ratio += 0.01;
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 360, 1, "transparent");
+                                //small circles
+                                v._draw_arc(start_x + _width / 2 - _radius*0.6, _height / 2, _radius / 5, "#27b427", _ratio * 360, 1, "transparent");
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius / 5, "#27b427", _ratio * 360, 1, "transparent");
+                                v._draw_arc(start_x + _width / 2 + _radius*0.6, _height / 2, _radius / 5, "#27b427", _ratio * 360, 1, "transparent");
+                                
+                            }else if(_state === "FLUSH_CIRCLE_WAIT"){
+                                if(_wait_count <= 0){
+                                    _wait_count = 20;
+                                    _state = "FLUSH_CIRCLE";
+                                }
+                                _wait_count -= 1;
+                            }else if(_state === "FLUSH_CIRCLE"){
+                                _ratio += 0.01;   
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius, "white", _ratio * 360, 2, "transparent");
+                                //small circles
+                                v._draw_arc(start_x + _width / 2 - _radius*0.6, _height / 2, _radius / 5, "white", _ratio * 360, 2, "transparent");
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius / 5, "white", _ratio * 360, 2, "transparent");
+                                v._draw_arc(start_x + _width / 2 + _radius*0.6, _height / 2, _radius / 5, "white", _ratio * 360, 2, "transparent");
+                                if(_ratio >= 1){
+                                    _state = "CIRCLE";
+                                    _ratio = 0;
+                                }
+                            }
+                        },5);
+                    };
+                    status_1();
+                    break;
+                case 2:
+                    let status_2 = () => {
+                        let _state = "START"; // or "CIRCLE" or "LINE_A" or "LINE_B" or "END"
+                        let _ratio = 0;
+
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        this._current_animation_flag = setInterval(() => {
+                            // flush the canvas to get a better circle
+                            if(_state == "CIRCLE")
+                                this._flush_canvas_part(1);
+
+                            if(_state === "START"){
+                                _state = "CIRCLE";
+                                _ratio = 0.0;
+                            }else if(_state === "CIRCLE"){
+                                _ratio += 0.018;
+                                
+                                v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 270, 1, "transparent", 180);
+                                if(_ratio >= 1){
+                                    _state = "LINE_A";
+                                    _ratio = 0;
+                                }
+                            }else if(_state === "LINE_A"){
+                                _ratio += 0.08;
+
+                                let circle_width = _radius;
+                                ctx.strokeStyle = "#27b427";
+                                ctx.beginPath();
+                                ctx.moveTo(start_x + _width / 2 - circle_width/2, _height / 2);
+                                ctx.lineTo(start_x + _width / 2 - circle_width/2 + circle_width/2 * _ratio , _height / 2 + circle_width/2 * _ratio);
+                                ctx.stroke();
+                                if(_ratio >= 1){
+                                    _state = "LINE_B";
+                                    _ratio = 0;
+                                }
+                            }else if(_state === "LINE_B"){
+                                _ratio += 0.12;
+                                let circle_width = _radius;
+                                ctx.strokeStyle = "#27b427";
+                                ctx.beginPath();
+                                ctx.moveTo(start_x + _width / 2, _height / 2 + circle_width / 2);
+                                ctx.lineTo(start_x + _width / 2 + circle_width * _ratio , _height / 2 + circle_width/2 - circle_width * _ratio);
+                                ctx.stroke();
+
+                                if(_ratio >= 1){
+                                    _state = "END";
+                                    _ratio = 0;
+                                }
+                            }else if(_state === "END"){
+                                clearInterval(this._current_animation_flag);
+                            }
+                        },10);
+                    };
+                    status_2();
+                    break;
+                default:
+                    break;
             }
+        },
+
+        // update variable
+        _set_status(status){
+            this._UI_animation(status);
+        },
+
+        _set_RAM(RAM){
+            RAM = String(RAM);
+            if(RAM.indexOf("-") >= 0){ 
+                this._update_graph(2, RAM, 0);
+            }else if(Number.isInteger(this.max_RAM)){
+                let ratio = (parseFloat(RAM) / this.max_RAM);
+                this.RAM_percent = (ratio*100).toFixed(0);
+                this._update_graph(2, ratio, ratio);               
+            }else{
+                this._update_graph(2, 0, 0);                
+            }
+        },
+
+        _set_online_player(player){
+            let _ratio = (player / this.total_player);
+            
+            this._update_graph(1, player, _ratio);
         }
     },
     mounted(){
-        this.$watch('work_status',(newVal, oldVal)=>{
-            this._UI_animation(newVal);
-            if(newVal == HALT){
-                this.reset();
-            }else if(newVal == RUNNING){
-                this.set_online_player(0);
-            }
+        const canvas = this.$refs.c;
+        this._canvas = canvas;
+        // init size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        // resize canvas when window.onresize triggers
+        this.$nextTick(function() {
+            window.addEventListener('resize', this._redraw_canvas);
         });
+    },
+
+    beforeDestroy(){
+        window.removeEventListener('resize', this._redraw_canvas);
     }
 }
+export default vm;
 </script>
 
 <style>
- /*circle loop*/
-@-webkit-keyframes load {
-  0% {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes load {
-  0% {
-    stroke-dashoffset: 0;
-  }
-}
-.progress {
-    position: relative;
-    display: inline-block;
-    padding: 0;
-    text-align: center;
-    height: auto;
-    min-height: 12rem;
+table.full-width{
     width: 100%;
-    background-color: transparent;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-.progress > li {
-    display: inline-block;
-    position: relative;
-    text-align: center;
-    width:33.33%;
-    height: 100%;
-    vertical-align: top;
-}
-.progress .pg-main{
-    width: 10rem;
-    height: 10rem;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
-    margin-top: 0.8rem;
-    margin-bottom: 0.8rem;
+    table-layout: fixed;
 }
 
-.progress svg {
+table.full-width > tr > td{
+    vertical-align:middle;
+    text-align: center;
+    width: 2%;
+}
+
+div.frame-c{
+    height: 16rem;
+}
+
+div.frame{
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+canvas#canvas{
+    height: 10rem;
     width: 100%;
-    height: 100%;
-    fill:none;
 }
 
 div.central-number{
@@ -318,54 +566,10 @@ span.em_2_text{
     width: 2em;
     display: inline-block;
 }
-/*online users*/
-div#online-num{
-    top:28px;
-    left:20px;
-    width:2em;
-    color: blue;
-}
-
-div#divider{
-    top:37px;
-    left:37px;
-    font-size: 25px;
-}
-
-div#total-num{
-    top:50px;
-    left:42px;
-    width:2em;
-    color: blue;
-}
 
 div.pg-info span.hint-text{
     color:gray;
     font-size: 13px;
     margin-top: 0;
-}
-div#RAM-percent{
-    position: absolute;
-    line-height: 25px;
-    top:35px;
-    left: 20px;
-    text-align: center;
-    font-size: 25px;
-    width:2em;
-    color: red;
-}
-
-div#RAM-percent-mark{
-    position: absolute;
-    line-height: 25px;
-    top:42px;
-    left:60px;
-    font-size:13px;
-    text-align: center;
-}
-
-div.pg-main #stop-rev{
-    position: relative;
-    top: -105px;
 }
 </style>

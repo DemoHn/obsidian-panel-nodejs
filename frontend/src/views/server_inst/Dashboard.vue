@@ -183,8 +183,7 @@ export default {
                 server_properties: {},
                 listen_port : null,
             },
-            ip_addr: null,
-            ip_port: null
+            ip_addr: null
         };
     },
     computed: {
@@ -293,9 +292,11 @@ export default {
                 let props = {
                     inst_id : this.inst_id
                 }
+
                 ws.ajax("GET", "/server_inst/dashboard/get_instance_status/"+this.inst_id, (msg)=>{
-                    Status.init_status_list(msg.val);
+                    Status.init_status_list(msg.val);   
                     Button.init(msg.val.status);
+                    
                 });
             }
         },

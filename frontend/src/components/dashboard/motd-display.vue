@@ -12,7 +12,6 @@
         },
         data(){
             return {
-                _raw_content : ""
             }
         },
         computed : {
