@@ -123,7 +123,13 @@ const launch_process = () => {
     // process quitting events
     process.on('SIGINT', gracefully_exit);
     process.on('SIGTERM', gracefully_exit);
-    process.on('uncaughtException', gracefully_exit);
+    process.on('uncaughtException', (err) => {
+        console.log("[INFO] A fatal error is detected!");
+        console.log("[INFO] Process will quit!\n");
+        console.log(err);
+        console.log(" ");
+        gracefully_exit();
+    });
 
     let config = utils.get_config();
     let server_port = config["server"]["listen_port"];

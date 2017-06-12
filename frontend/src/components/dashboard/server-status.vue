@@ -43,7 +43,11 @@
                             <span class="hint-text">最大内存： </span><span>{{ max_RAM }}</span>&nbsp;<span>G</span>
                         </div>
                     </td>
-                    <td> <div class="pg-info">233</div></td>
+                    <td>
+                        <div class="pg-info">
+                            <span class="hint-text">CPU使用率： </span><span>{{ cpu_100 }}</span>&nbsp;<span>%</span>
+                        </div>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -78,6 +82,7 @@ let vm = {
             current_RAM: null,
             max_RAM: null,
             RAM_percent: null,
+            CPU_percent: null,
             loading_status : LOAD_SUCCESS,
 
             _canvas: null,
@@ -93,9 +98,11 @@ let vm = {
                 if(val == HALT || val == STARTING){
                     this.current_player = "--";
                     this.current_RAM = "--";
+                    this.CPU_percent = "--";
                 }else if(val == RUNNING && old_val == STARTING){
                     this.current_player = 0;
                     this.current_RAM = 0;
+                    this.CPU_percent = 0;
                 }
             }            
         },
@@ -106,9 +113,28 @@ let vm = {
 
         current_RAM(val){
             this._set_RAM(val);
+        },
+
+        CPU_percent(val){
+            this._set_CPU(val);
         }
     },
 
+    computed:{
+        cpu_100(){
+            let _cpu;
+            try{
+                _cpu = parseFloat(this.CPU_percent);
+            }catch(e){
+                return "--"; // no data
+            }
+            if(isNaN(_cpu)){
+                return "--";
+            }else{
+                return Math.round(_cpu * 100);
+            }
+        }
+    },
     methods:{
         // retrieve data from list
         // val = msg.val
@@ -136,6 +162,15 @@ let vm = {
                 this.current_RAM = RAM;
             }else{
                 this.current_RAM = parseFloat(RAM).toFixed(2);
+            }
+        },
+
+        set_CPU(CPU){
+            CPU = String(CPU);
+            if(CPU.indexOf("-") >= 0){
+                this.CPU_percent = CPU;
+            }else{
+                this.CPU_percent = parseFloat(CPU).toFixed(2);
             }
         },
 
@@ -173,6 +208,12 @@ let vm = {
                 this.set_RAM("--");
             }
 
+            if(val.CPU != -1){
+                this.set_CPU(val.CPU);
+            }else{
+                this.set_CPU("--");
+            }
+
             this.work_status = val.status;
         },
 
@@ -189,6 +230,7 @@ let vm = {
             this._set_status(this.work_status);
             this._set_online_player(this.current_player);
             this._set_RAM(this.current_RAM);
+            this._set_CPU(this.CPU_percent);
         },
 
         _flush_canvas_part(part_num){
@@ -224,6 +266,17 @@ let vm = {
             // line color
             context.strokeStyle = color;
             context.stroke();
+        },
+
+        _draw_percent(start_x, start_y, color = "#333"){
+            const canvas = this._canvas;
+            const ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = color;
+            ctx.lineWidth = 1;
+                        
+            ctx.font = "14px Arial";
+            ctx.fillText("%", start_x, start_y);
         },
 
         // index = 0 ==> online players, index = 1 ==> RAM usages
@@ -297,18 +350,51 @@ let vm = {
 
                         // draw digit
                         seg_config["color"] = "red";
-                        let seg = new SevenSegment(v._canvas, _center_x, _center_y, seg_config);
+                        let seg = new SevenSegment(v._canvas, _center_x - 2, _center_y, seg_config);
                         let _v;
                         if(value.indexOf("-") < 0){
                             _v = Math.round(parseFloat(value) * 100) + "";
                         }else{
                             _v = value;
                         }
-                        seg.draw_digits(_v); // to ensure value is a string
+                        let [_end_w, _h] = seg.draw_digits(_v); // to ensure value is a string
+                        this._draw_percent(_end_w + 3, _center_y + _h/2);
                     }
                     update_graph_2();
                     break;
                 case 3:
+                    let update_graph_3 = () => {
+                        let coor_arr = v._flush_canvas_part(4),
+                             start_x = coor_arr[2],
+                             _height = coor_arr[1],
+                             _width  = coor_arr[0];
+                        
+                        let angle = 0;
+                        let _radius = _width > _height ? _height/2-18 : _width/2-18;
+
+                        if(ratio !== null && ratio.indexOf("-") < 0){
+                            angle = parseFloat(ratio) * 360;
+                        }
+
+                        let _center_x = start_x + _width / 2,
+                            _center_y = _height / 2;
+                        v._draw_arc(_center_x, _center_y, _radius, "green", angle, 8, "#fafafa");
+
+                        // draw digit
+                        seg_config["color"] = "green";
+                        let seg = new SevenSegment(v._canvas, _center_x - 2, _center_y, seg_config);
+                        let _v;
+                        if(value.indexOf("-") < 0){
+                            _v = Math.round(parseFloat(value) * 100) + "";
+                        }else{
+                            _v = value;
+                        }
+                        let [_end_w, _h] = seg.draw_digits(_v); // to ensure value is a string
+                        //console.log(_end_w, _h)
+                        this._draw_percent(_end_w + 3, _center_y + _h * 0.5);
+
+                    }
+                    update_graph_3();
                     break;
                 default:
                     break;
@@ -347,7 +433,7 @@ let vm = {
                                 _state = "CIRCLE";
                                 _ratio = 0.0;
                             }else if(_state === "CIRCLE"){
-                                _ratio += 0.018;
+                                _ratio += 0.02;
                                 
                                 v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 360, 1, "transparent");
                                 if(_ratio >= 1){
@@ -371,7 +457,7 @@ let vm = {
                             }else if(_state === "END"){
                                 clearInterval(this._current_animation_flag);
                             }
-                        },10);
+                        },20);
                     };
                     status_0();
                     break;
@@ -395,7 +481,7 @@ let vm = {
                                 }else{
                                     this._flush_canvas_part(1);
                                 }
-                                _ratio += 0.01;
+                                _ratio += 0.02;
                                 v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 360, 1, "transparent");
                                 //small circles
                                 v._draw_arc(start_x + _width / 2 - _radius*0.6, _height / 2, _radius / 5, "#27b427", _ratio * 360, 1, "transparent");
@@ -409,7 +495,7 @@ let vm = {
                                 }
                                 _wait_count -= 1;
                             }else if(_state === "FLUSH_CIRCLE"){
-                                _ratio += 0.01;   
+                                _ratio += 0.02;   
                                 v._draw_arc(start_x + _width / 2, _height / 2, _radius, "white", _ratio * 360, 2, "transparent");
                                 //small circles
                                 v._draw_arc(start_x + _width / 2 - _radius*0.6, _height / 2, _radius / 5, "white", _ratio * 360, 2, "transparent");
@@ -420,7 +506,7 @@ let vm = {
                                     _ratio = 0;
                                 }
                             }
-                        },5);
+                        },20);
                     };
                     status_1();
                     break;
@@ -440,7 +526,7 @@ let vm = {
                                 _state = "CIRCLE";
                                 _ratio = 0.0;
                             }else if(_state === "CIRCLE"){
-                                _ratio += 0.018;
+                                _ratio += 0.035;
                                 
                                 v._draw_arc(start_x + _width / 2, _height / 2, _radius, "#27b427", _ratio * 270, 1, "transparent", 180);
                                 if(_ratio >= 1){
@@ -448,7 +534,7 @@ let vm = {
                                     _ratio = 0;
                                 }
                             }else if(_state === "LINE_A"){
-                                _ratio += 0.08;
+                                _ratio += 0.2;
 
                                 let circle_width = _radius;
                                 ctx.strokeStyle = "#27b427";
@@ -476,7 +562,7 @@ let vm = {
                             }else if(_state === "END"){
                                 clearInterval(this._current_animation_flag);
                             }
-                        },10);
+                        },20);
                     };
                     status_2();
                     break;
@@ -500,6 +586,15 @@ let vm = {
                 this._update_graph(2, ratio, ratio);               
             }else{
                 this._update_graph(2, 0, 0);                
+            }
+        },
+
+        _set_CPU(CPU){
+            CPU = String(CPU);
+            if(CPU.indexOf("-") >= 0){
+                this._update_graph(3, CPU, 0);
+            }else{
+                this._update_graph(3, CPU, CPU); 
             }
         },
 
@@ -551,7 +646,7 @@ div.frame{
 }
 
 canvas#canvas{
-    height: 10rem;
+    height: 120px;
     width: 100%;
 }
 

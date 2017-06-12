@@ -1,7 +1,27 @@
 <template lang="html">
     <div>
+        <div class="choose-bar">
+            <span class="right-margin">输出编码</span>
+            <select style="font-size: 1.1rem;"> 
+                <option value="auto">自动</option>
+                <option value="utf8">UTF-8</option>
+                <option value="gb2312">GB2312</option>
+                <option value="gb18030">GB18030</option>
+                <option value="big5">BIG-5</option>
+            </select>
+            <!-- -->
+            <span class="right-margin"></span><span class="right-margin"></span>
+            <span class="right-margin">缓冲区大小</span>
+            <select style="font-size: 1.1rem;"> 
+                <option value="200">200</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+                <option value="2000" selected>2000</option>
+                <option value="5000">5000</option>
+            </select>
+            
+        </div>
         <div class="embeded-console">
-            <!--<vue-editor v-model="editor_content" @init="editorInit" theme="dawn" ref="editorComponent" width="100%" height="100%"></vue-editor>-->
             <pre class="console-pre"><code v-for="line in content_arr" :class="line['type']">{{ line["log"] }}</code></pre>
         </div>
         <div class="input_cmd_bar">
@@ -68,6 +88,19 @@
 </script>
 
 <style scoped>
+div.choose-bar{
+    height: 2.5rem;
+    line-height: 2.5rem;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+span.right-margin{
+    margin-right: 1rem;
+}
 div.embeded-console{
     width: 100%;
     height: 25rem;

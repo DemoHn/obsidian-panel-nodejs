@@ -106,6 +106,7 @@ module.exports = {
 
         let _curr_player = -1;
         let _RAM = -1;
+        let _CPU = -1; // no data
 
         if(inst_info.get_current_player() != null){
             _curr_player = inst_info.get_current_player();
@@ -115,10 +116,15 @@ module.exports = {
             _RAM = inst_info.get_RAM();
         }
 
+        if(inst_info.get_CPU() != null){
+            _CPU = inst_info.get_CPU();
+        }
+
         let _model = {
             current_player: _curr_player,
             total_player: inst_conf.max_player,
             RAM: _RAM,
+            CPU: _CPU,
             total_RAM: inst_conf.max_RAM,
             status: inst_pool.get_status(inst_id)
         };
@@ -233,7 +239,7 @@ module.exports = {
             // record the input into log object
             let _cmd_log = "⟹ %s\n" % command;
             // 0 for stdin
-            _info.append_log(0,_cmd_log);
+            _info.append_log(0, _cmd_log);
 
             // if input 'stop', just stop it, do not restart the server.
             // Because this command is surely propmted by user.
@@ -260,10 +266,24 @@ module.exports = {
                             continue;
                         }else{
                             pusage.stat(pid, (err, stat) => {
-                                // stat = {"cpu": <cpu>, "memory":<mem> (bytes)}
-                                let mem = stat.memory / (1024*1024*1024); // unit: GB
-                                inst.info.set_RAM(mem);
-                                _send_message(inst_id, "memory_change", mem);
+
+                                if(err){
+                                    console.log(err);
+                                }else{                                
+                                    // stat = {"cpu": <cpu>, "memory":<mem> (bytes)}
+                                    let mem = stat.memory / (1024*1024*1024); // unit: GB
+                                    let cpu = stat.cpu / 100; // CPU percent, e.g.: 0.24
+
+                                    // limit ratio to 100%
+                                    if(cpu >= 1.00){
+                                        cpu = 1.00;
+                                    }
+                                    
+                                    inst.info.set_RAM(mem);
+                                    inst.info.set_CPU(cpu);
+                                    _send_message(inst_id, "memory_change", mem);
+                                    _send_message(inst_id, "cpu_change", cpu);
+                                }
                             });
                             pusage.unmonitor(pid);
                         }

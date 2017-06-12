@@ -26,15 +26,20 @@ class SevenDigit{
 
     draw_digits(str){
         const _len_str = str.length;
+        let _last_center_x;
         let _left_offset = this.center_x - (this.config.digit_width + this.config.digit_gap ) * (_len_str - 1) / 2;
 
         if(str[0] === "1"){
             _left_offset = _left_offset - this.config.digit_width / 2 + this.config.stroke_width*1.2; // offset when start with '1'
         }
-
+        
         for(let i=0;i<_len_str;i++){
-            this._draw_digit(_left_offset + (this.config.digit_width + this.config.digit_gap)*i, this.center_y, str[i]);
+            _last_center_x = _left_offset + (this.config.digit_width + this.config.digit_gap)*i;
+            this._draw_digit(_last_center_x, this.center_y, str[i]);
         }
+
+        let _digital_height = this.config.digit_width * this.config.HW_ratio;
+        return [_last_center_x + this.config.digit_width / 2, _digital_height];
     }
 
     // draw only one digit

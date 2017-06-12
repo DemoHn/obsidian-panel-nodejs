@@ -4,9 +4,7 @@
 
             <!-- timeline time label -->
             <li class="time-label">
-                <span class="bg-green">
-                    &nbsp;&nbsp;基本设置&nbsp;&nbsp;
-                </span>
+                <span class="bg-green">&nbsp;&nbsp;基本设置&nbsp;&nbsp;</span>
             </li>
             <!-- /.timeline-label -->
 
@@ -131,9 +129,7 @@
             </inst-item>
 
             <li class="time-label">
-                <span class="bg-blue">
-                    &nbsp;&nbsp;世界属性&nbsp;&nbsp;
-                </span>
+                <span class="bg-blue">&nbsp;&nbsp;世界属性&nbsp;&nbsp;</span>
             </li>
             <!-- server properties-->
             <inst-item :required="false" :JR_result="server_properties_assert">
@@ -204,9 +200,7 @@
             </inst-item>
 
             <li class="time-label">
-                <span class="bg-green">
-                    &nbsp;&nbsp;杂项&nbsp;&nbsp;
-                </span>
+                <span class="bg-green">&nbsp;&nbsp;杂项&nbsp;&nbsp;</span>
             </li>
 
             <inst-item :required="false" :JR_result="server_logo_assert">

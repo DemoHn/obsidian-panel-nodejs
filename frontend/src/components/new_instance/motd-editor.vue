@@ -18,7 +18,7 @@ const toolbarOptions = [
     ['bold', 'italic', 'underline', 'strike'],
     [{ 'color': motd_colors }]
 ];
-const placeholders = ["这是一个Minecraft服务器，嗯。","I'm angry!","This server is young, simple and naive!"];
+const placeholders = ["I'm angry!", "Too young, too simple, sometimes naive!"];
 export default {
     name:"motd-editor",
     components:{

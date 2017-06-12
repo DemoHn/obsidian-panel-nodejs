@@ -22,6 +22,7 @@ class WebSocket {
             this.socketQueue = {};
             this.pendingFlags = {};
             this.bindEvents  = {};
+            this.bindBinaryFunctions = [];
             this.connected = false;
         }
         return instance;
@@ -62,6 +63,13 @@ class WebSocket {
                 if(this.bindEvents[msg.event] != null){
                     let execFunc = this.bindEvents[msg.event];
                     execFunc(msg);
+                }
+            });
+
+            this.socket.on("message_binary", (binary) => {
+                for(let i=0;i<this.bindBinaryFunctions.length;i++){
+                    let execFunc = this.bindBinaryFunctions[i];
+                    execFunc(binary);
                 }
             });
         }
@@ -113,6 +121,12 @@ class WebSocket {
     bind(event_name, bind_func){
         if(typeof(bind_func) == "function"){
             this.bindEvents[event_name] = bind_func;
+        }
+    }
+
+    bind_binary(bind_func){
+        if(typeof(bind_func) == "function"){
+            this.bindBinaryFunctions.push(bind_func);
         }
     }
 

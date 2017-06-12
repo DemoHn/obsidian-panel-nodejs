@@ -14,6 +14,11 @@ const _send_message = (inst_id, event, value) => {
     }
 };
 
+const _send_message_binary = (binary) => {
+    const io = require("../index").io;
+    io.emit("message_binary", binary);
+}
+
 class MCProcessCallback {
     constructor(){
 
@@ -40,6 +45,9 @@ class MCProcessCallback {
             _model['type'] = 'E';
         };
         _send_message(inst_id, "log_update", _model);
+
+        const _buf = inst_pool.get_info(inst_id).format_log(pipe, log);
+        _send_message_binary(_buf);
     }
 
     on_instance_start(inst_id){
@@ -51,6 +59,8 @@ class MCProcessCallback {
 
     on_instance_running(inst_id, start_time){
         inst_pool.set_status(inst_id, utils.RUNNING);
+        inst_pool.get_info(inst_id).set_current_player(0);
+        
         _send_message(inst_id, "status_change", utils.RUNNING);
     }
 
