@@ -1,8 +1,18 @@
-const utils = require("../../../utils");
 const model = require("../../model");
 
-const express = require("express");
-let check_login_ctrl = require("../../controller/login");
+const multer = require("multer"),
+      express = require("express"),
+      utils = require("../../../utils");
+      
+      check_login_ctrl = require("../../controller/login"),
+      upgrade_ctrl = require("../../controller/upgrade");
+      
+const data_dir = utils.get_config()["global"]["data_dir"];
+const files_dir = utils.resolve(data_dir, "files");
+
+const files_upload = multer({
+    dest: files_dir
+});
 
 let router = express.Router();
 
@@ -49,5 +59,8 @@ router.get('/get_current_version', (req, res, next) => {
     let version = utils.get_version();
     res.success(version);
 });
+
+// upload package manually
+router.post("/upload_upgrade_package", files_upload.single('files'), upgrade_ctrl.verify_upgrade_bundle);
 
 module.exports = router;

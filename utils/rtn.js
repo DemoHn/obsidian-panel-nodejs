@@ -8,7 +8,9 @@ const error_code = {
     500: "Fatal Error.",
     502: "Username not found",
     504: "Password Error.",
-
+    700: "META file not found!",
+    701: "Format of META file is wrong!",
+    702: "Current version is not able to support this upgrade package!"
 };
 
 module.exports = {

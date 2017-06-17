@@ -1,101 +1,156 @@
 <template lang="html">
     <div class="wrap">
         <div><span class="lb">当前版本：</span> <span class="version">{{ "v"+ current_version }}</span></div>
-        <div v-if="check_status == 0"><span class="lb-gray">正在检查更新 <i class="fa fa-spinner fa-spin fa-fw"></i></span></div>
+        <div v-if="check_status == 0">
+            <span class="des" v-if="upload_status == 0">点击以上传新版本之压缩包</span>
+            <span class="des" v-if="upload_status == 1">上传中 ({{ upload_progress + "%" }})</span>
+            <span class="des des-error" v-if="upload_status == -1">校验失败，请重新上传！</span>
+            <span class="des des-error" v-if="upload_status == -2">压缩包对应面板版本过低，无法安装！</span>
+            <span class="des des-error" v-if="upload_status == -3">面板版本过低，无法安装！</span>
+            <span class="des des-error" v-if="upload_status == -4">未知错误，请重新上传！</span>
+            <vue-file-upload
+                    ref="vueFileUploader"
+                    url="/super_admin/settings/upload_upgrade_package"
+                    name="files"
+                    label="选择文件"
+                    :filters = "filters"
+                    :events = 'cbEvents'
+                    @onAdd = "onAddItem"
+                    ></vue-file-upload>
+        </div>
         <div v-if="check_status == 1">
-            <span class="lb-gray">更新检查失败 &nbsp;&nbsp;<button class="btn btn-default btn-xs" @click="check_update">&nbsp;重试&nbsp;</button></span>
+            <span class="lb">更新至：</span><span class="version">{{ "v" + update_version }}</span><br>
+            <span class="lb">发行日期：</span><span class="version">{{ release_date }}</span><br>
+            <span class="lb">是否更新？</span>
+            <button class="btn btn-primary btn-sm" @click="execute_update">确定</button>&nbsp;&nbsp;
+            <button class="btn btn-secondary btn-sm" @click="cancel_update">取消</button>
         </div>
         <div v-if="check_status == 2">
-            <div v-if="is_newest">
-                <span class="lb-gray">目前已是最新版本</span>
-            </div>
-            <div v-if="!is_newest">
-                <span class="lb">最新版本：</span> <span class="version">{{ newest_version }}</span>
-                <!-- version info-->
-                <div class="version-info" v-if="expand_version_info">
-                    <div>
-                        <span class="lb-gray">发布时间:</span> <div class="lb-blue info_note">{{ newest_release_date }}</div>
-                    </div>
-                    <div>
-                        <span class="lb-gray">更新说明:</span><div class="lb-blue info_note" v-for="note_line in newest_release_note">
-                            <div>{{ note_line }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div><a class="toggle_a" v-if="!expand_version_info" @click="toggle_exp">展开版本信息</a><a class="toggle_a" v-if="expand_version_info" @click="toggle_exp">收回版本信息</a></div>
-                <br>
-                <div v-if="update_status == 0">
-                    <span class="lb-gray">开始更新前，请务必<b>关闭</b>所有活跃的Minecraft服务器！</span><br>
-                    <button class="btn btn-primary btn-sm" @click="execute_update">更新</button>
-                </div>
-                <div v-if="update_status == 1">
-                    <button class="btn btn-primary btn-sm" disabled>更新中 <i class="fa fa-spinner fa-spin fa-fw"></i></button>
-                </div>
-                <div v-if="update_status == 2">
-                    <span class="lb-gray">更新失败</span><br>
-                    <button class="btn btn-danger btn-sm" @click="execute_update">重试</button>
-                </div>
-                <div v-if="update_status == 3">
-                    <span class="lb-gray">更新完成，请点击「重新启动」以重启面板！</span><br>
-                    <button class="btn btn-danger btn-sm" @click="reboot">重新启动</button>
-                </div>
-                <div v-if="update_status == 4">
-                    <span class="lb-gray">请注意，此页面将不提示重启结果。请默念5秒后再刷新页面!</span><br>
-                    <button class="btn btn-danger btn-sm" @click="reboot">重启中 <i class="fa fa-spinner fa-spin fa-fw"></i></button>
-                </div>
-            </div>
+            <div v-if="upgrade_status == 0"><span class='lb-gray'>更新面板中...</span> <span>{{ count_down }}</span></div>
+            <div v-if="upgrade_status == 1"><span class='lb-gray'>更新已完成，即将重新登录！</span> </div>
         </div>
     </div>
 </template>
 
 <script>
+/*
+    check_status = 0 -> uploading bundle
+                 = 1 -> confirm upgrade
+                 = 2 -> upgrading and jumping
+*/
     import WebSocket from "../../lib/websocket.js"
+    import VueFileUpload from 'vue-file-upload';
 
     let ws = new WebSocket();
     export default {
         name : 'update-checker',
+        components:{
+            'vue-file-upload': VueFileUpload
+        },
         data(){
-            return {
-                "current_version" : "",
-                "check_status" : 0,
-                "update_status": 0,
-                "is_newest" : false,
-                "expand_version_info" : false,
-                // newest version
-                "newest_version":"",
-                "newest_release_note":"",
-                "newest_release_date":""
+            let v = this;
+            let rtn = {
+                current_version : "",
+                check_status : 0,
+                upload_status : 0,
+                upload_progress: 0.0,
+                // check_status -> 0
+                filters:[
+                    {
+                        name:"zipFilter",
+                        fn(file){
+                            var extension = file.name.slice(file.name.lastIndexOf('.') + 1);
+                            if(extension === "zip"){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        }
+                    }
+                ],
+                file: null,
+                cbEvents: {
+                    onCompleteUpload(file,response,status,header){
+                        let success = false;
+                        if(status == 200 && response.code == 200){
+                            success = true;
+                        }
+                        v._onCompeleteUpload(success, response);
+                    },
+                    onErrorUpload(file, response){
+                        v._onErrorUpload();
+                    },
+                    onProgressUpload(file, progress){
+                        v._onProgressUpload(progress);
+                    }
+                },
+                // check_status -> 1
+                upgrade_version: null,
+                release_date: null,
+                // check_status -> 2
+                update_status: 0,
+                count_down : 30
             }
+
+            return rtn;
         },
         methods:{
-            toggle_exp(){
-                this.expand_version_info = ! this.expand_version_info;
+             onAddItem(files){
+                // reset other values
+                this.file = files[files.length-1];
+
+                this.upload_status = 1
+                // update dropbox's height            
+                this.file.upload();
             },
+            // upload related method
+            _onCompeleteUpload(status, response){
+                let code = response.code;
+                if(code == 701){
+                    this.upload_status = -1;
+                }else if(code == 702){
+                    this.upload_status = -3;
+                }else if(code == 703){
+                    this.upload_status = -2; 
+                }else if(code == 200){
+                    this.upload_status = 0;
+                    // write down version info data
+                    this.update_version = response.info.version;
+                    this.release_date = response.info.release_date;
+                    this.check_status = 1;
+                }else{
+                    this.upload_status = -4;
+                }
+            },
+            _onErrorUpload(){
+                this.upload_status = -4;
+            },
+            _onProgressUpload(progress){
+                this.upload_progress = progress;
+            },
+
             get_current_version(){
                 let v = this;
                 this.aj_get_current_version((msg)=>{
                     v.current_version = msg;
                 });
             },
-            check_update(){
-                let v = this;
-                v.check_status = 0;
-                this.aj_check_update_info((msg)=>{
-                    v.is_newest = msg.is_newest;
-                    v.check_status = 2; // success
-                    if(!msg.is_newest){
-                        v.newest_version = msg.version;
-                        v.newest_release_date = msg.publish_date;
-                        v.newest_release_note = msg.release_note.split("\n");
-                    }
-                },(code)=>{
-                    v.check_status = 1; // fail
-                });
-            },
+            // update
             execute_update(){
                 let v = this;
-                v.update_status = 1;
-                this.aj_execute_update((msg)=>{
+                v.check_status = 2;
+                v.upgrade_status = 0;
+                let _f = setInterval(()=>{
+                    if(v.count_down == 0){
+                        v.upgrade_status = 1;
+                        v.exexute_redirect();
+                        clearInterval(_f);
+                    }else{
+                        v.count_down -= 1;
+                    }
+                }, 1000);
+                //TODO
+                /*this.aj_execute_update((msg)=>{
                     if(msg == false){
                         v.update_status = 2;
                     }else{
@@ -103,13 +158,17 @@
                     }
                 },(code)=>{
                     v.update_status = 2;
-                });
+                });*/
             },
-            reboot(){
-                this.aj_reboot();
+            cancel_update(){
+                this.check_status = 0;
             },
-            aj_execute_update(callback, cb_error){
-                ws.ajax("GET","/super_admin/settings/execute_update",(msg)=>{
+
+            execute_redirect(){
+                // after upgrading, it's time to upgrade 
+            },
+            aj_execute_update(){
+              /*  ws.ajax("GET","/super_admin/settings/execute_update",(msg)=>{
                     if(typeof(callback) === "function"){
                         callback(msg);
                     }
@@ -117,15 +176,7 @@
                     if(typeof(cb_error) === "function"){
                         cb_error(code);
                     }
-                })
-            },
-            aj_reboot(){
-                ws.ajax("GET","/super_admin/settings/reboot",(msg)=>{
-                    if(typeof(callback) === "function"){
-                        callback(msg);
-                    }
-                })
-                this.update_status = 4; // rebooting
+                })*/
             },
             aj_get_current_version(callback){
                 ws.ajax("GET","/super_admin/settings/get_current_version",(msg)=>{
@@ -133,23 +184,11 @@
                         callback(msg);
                     }
                 })
-            },
-            aj_check_update_info(callback, cb_error){
-                ws.ajax("GET","/super_admin/settings/check_newest_release",(msg)=>{
-                    if(typeof(callback) === "function"){
-                        callback(msg);
-                    }
-                },(code)=>{
-                    if(typeof(cb_error) === "function"){
-                        cb_error(code);
-                    }
-
-                })
             }
         },
         mounted(){
             this.get_current_version();
-            this.check_update();
+            //this.check_update();
         }
     }
 </script>
@@ -159,6 +198,14 @@ div.wrap{
     margin-top: 1rem;
 }
 
+span.des{
+    color: #666;
+    margin-right: 1rem;
+}
+
+span.des-error{
+    color: red !important;
+}
 span.lb{
     line-height: 2.5rem;
     font-size: 1.5rem;
