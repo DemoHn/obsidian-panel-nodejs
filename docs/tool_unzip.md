@@ -27,7 +27,7 @@ Another is to call it internally. The most advantage of this way is the ability 
 
     - `--method`  (necessary)  
     Whether a user is willing to extract tarballs or bundle files?  
-    Operations are Either `unzip` or `zip` or `read`.   
+    Operations are Either `unzip` or `zip` or `read` or `extract_file`.   
     e.g. : `--method=zip`
 
     - `--target` (necessary)  
@@ -42,3 +42,18 @@ Another is to call it internally. The most advantage of this way is the ability 
     Extract or compress file type.  
     Options: Either `tar` or `zip`.  
     e.g.: `--type=tar`
+
+    - `--file` (optional)
+    Denote which file to extract. Only used on `extract_file` method.
+    the path is internal.
+    e.g.: `--file=obsidian-panel/.UPDATES.yml`
+3. Examples:
+
+  a) unzip a bundle:   
+  `obsidian -t unzip --method=unzip --target=/path/to/zipfile.zip --dest=/path/to/unzip --type=zip`
+
+  b) read directory info of a bundle:   
+  `obsidian -t unzip --method=read --target=/path/to/zipfile.zip --type=zip`
+
+  c) extract a file in a bundle into a specific directory:   
+  `obsidian -t unzip --method=extract_file --target=/path/to/zipfile.zip --file=obsidian-panel/.UPDATES.yml --dest=/tmp --type=zip`

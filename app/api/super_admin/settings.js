@@ -45,4 +45,9 @@ router.post("/passwd", (req, res, next) => {
     );
 });
 
+router.get('/get_current_version', (req, res, next) => {
+    let version = utils.get_version();
+    res.success(version);
+});
+
 module.exports = router;

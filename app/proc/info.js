@@ -1,4 +1,6 @@
 const model = require("../model");
+const jschardet = require("jschardet");
+const iconv = require("iconv-lite");
 
 class MCInstanceInfo{
     constructor(owner=null, inst_id=null){
@@ -38,30 +40,57 @@ class MCInstanceInfo{
         this.log.push(_model);
     }
 
-    format_log(pipe, log_binary){
-        if(Buffer.isBuffer(log_binary)){
-            // protocol v1
-            const _header_length = 7;
-            let _len = log_binary.length;
+    format_log(pipe, log_binary, encoding){
+        // log encoding
+        const _supported_encodings = ["auto", "utf8", "gb2312", "gbk", "big5"];
 
-            if(_len > 65535 - _header_length){
-                _len = 65535 - _header_length; // max length of raw content
-            }
-            const buf = Buffer.allocUnsafe(_header_length + _len);
+        let _encoded_str = "";
+        switch(_supported_encodings.indexOf(encoding)){
+            case 0: // auto
+                let detect_info = jschardet.detect(log_binary);
+                
+                if(detect_info.confidence > 0.8){
+                    _encoded_str = iconv.decode(log_binary, detect_info.encoding);
+                }else{
+                    _encoded_str = iconv.decode(log_binary, 'utf8');
+                }
 
-            buf.writeUInt16BE(_len + _header_length, 0); // BUF_LENGTH
-            buf.writeUInt8(0x01, 2); // protocol ID
-            buf.writeUInt8(0x01, 3); // protocol Version. Current: 0x01
-            buf.writeUInt16BE(this.inst_id, 4);
-            buf.writeUInt8(pipe, 6);
-
-            log_binary.copy(buf, _header_length, 0, _len - 1); // copy log string to dest
-            return buf;
-
-        }else{
-            console.log("[LOG] log format is not binary!");
-            return null;
+                break;
+            case 1: // utf8
+                _encoded_str = iconv.decode(log_binary, 'utf8');
+                break;
+            case 2: // gb2312
+                _encoded_str = iconv.decode(log_binary, 'GB2312');
+                break;
+            case 3: // gbk
+                _encoded_str = iconv.decode(log_binary, 'GBK');
+                break;
+            default: // big5
+                _encoded_str = iconv.decode(log_binary, 'Big5');
+                break;
         }
+
+        let _pad = (size, num) => {
+            var s = String(num);
+            while (s.length < (size || 2)) {s = "0" + s;}
+            return s;
+        }
+
+        let _type;
+        switch(pipe){
+            case 0:
+                _type = "I";break;
+            case 1:
+                _type = "O";break;
+            case 2:
+                _type = "E";break;
+            default:
+                _type = "O";break;
+        }
+
+        let _protocol = '1';
+        let format_str = `${_protocol}${_pad(5, _encoded_str.length)}${_type}${_encoded_str}`;
+        return format_str;
     }
 
     /* set xxx */

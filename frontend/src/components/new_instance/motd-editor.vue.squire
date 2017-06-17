@@ -1,0 +1,339 @@
+<template lang="html">
+    <div class="frame">
+        <!-- TODO write menu bar-->
+        <div class="menubar">
+            <span class="menu-item" :style="{ 'color': isBold?'lightblue':'black'}" @click="select_bold"><i class="fa fa-bold"></i></span>
+            <span class="menu-item" :style="{ 'color': isItalic?'lightblue':'black'}" @click="select_italic"><i class="fa fa-italic"></i></span>
+            <span class="menu-item" :style="{ 'color': isUnderline?'lightblue':'black'}" @click="select_underline"><i class="fa fa-underline"></i></span>
+            <span class="menu-item" :style="{ 'color': isStrikeThrough?'lightblue':'black'}" @click="select_strike_through"><i class="fa fa-strikethrough"></i></span>
+            
+            <span class="color-box">
+                <i class="fa fa-font" :style="{ 'color': showColorBox?'#aaa':'blue'}" @click="showColorBox = !showColorBox"></i>
+                <div class="color-table" v-show="showColorBox">
+                    <span v-for="motd_color in motd_colors" class="color-block" @click="select_color(motd_color)">
+                        <span class="c" :style="{ 'background-color' : motd_color }"></span>
+                    </span>
+                </div>
+            </span>
+
+        </div>
+        <div id="squire" class="editor" ref="editor"></div>
+    </div>
+        
+</template>
+
+<script>
+
+const Squire = require('squire-rte');
+
+const motd_colors = [
+    "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+    "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+    "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+];
+
+export default {
+    name:"motd-editor",
+    
+    props:{
+        "placeholder" : {
+            default : "I'm angry"
+        }
+    },
+    data(){
+        return {
+            content: "",
+            editor : null,
+            isBold: false,
+            isItalic: false,
+            isUnderline: false,
+            isStrikeThrough: false,
+            showColorBox: false,
+            motd_colors: motd_colors
+        }
+    },
+
+    watch:{
+        isBold(val) {
+            val ? this.editor['bold'](null) : this.editor['removeBold'](null);
+        },
+        isItalic(val) {
+            val ? this.editor['italic'](null) : this.editor['removeItalic'](null);
+        },
+    },
+    mounted(){
+            const self = this;
+
+            this.editor = new Squire(this.$refs.editor, {
+                blockAttributes: {'class': ''},
+            });
+    },
+
+    beforeDestroy(){
+        if(this.editor != null){
+            this.editor.destroy();
+        }
+    },
+    methods:{
+        // $ref API
+        parse(){
+            let contents = this.editor.getHTML();
+            console.log(contents);
+            let utf8_encode = (str) => {
+                let f_str = "";
+                let num = 0;
+                for(let i=0;i<str.length;i++){
+                    num = str.charCodeAt(i);
+                    if(num > 0 && num < 128){
+                        f_str += str[i];
+                    }else{
+                        let hex_code = num.toString(16);
+                        f_str += "\\u";
+                        for(let j=0;j<4-hex_code.length;j++){
+                            f_str += "0"
+                        }
+
+                        f_str += hex_code;
+                    }
+                }
+
+                return f_str;
+            }
+
+            let SS = (R) => {
+                let ss = "\\u00a7" + R; //§
+                return ss;
+            }
+
+            let parsed_string = "";
+            let _count = 0;
+            let attribute_table = [];
+
+            // generate attribute table
+            for(let i = 0;i < contents.length;i++){
+                let attr_arr = [];
+                if(contents[i].hasOwnProperty("attributes") == false){
+                    attr_arr.push("r");
+                }else{
+                    let attr = contents[i]["attributes"];
+                    attr_arr.push("r");
+                    //color
+                    if(attr.hasOwnProperty("color")){
+                        for(let k = 0;k<motd_colors.length;k++){
+                            if(attr["color"] == motd_colors[k]){
+                                attr_arr.push(k.toString(16));
+                                //parsed_string += SS(k.toString(16)) + utf8_encode(text);
+                            }
+                        }
+                    }
+                    if(attr.hasOwnProperty("bold")){
+                        if(attr["bold"] === true){
+                            attr_arr.push("l");
+                        }
+                    }
+                    if(attr.hasOwnProperty("strike")){
+                        if(attr["strike"] === true){
+                            attr_arr.push("m");
+                        }
+                    }
+                    if(attr.hasOwnProperty("italic")){
+                        if(attr["italic"] === true){
+                            attr_arr.push("o");
+                        }
+                    }
+                    if(attr.hasOwnProperty("underline")){
+                        if(attr["underline"] === true){
+                            attr_arr.push("n");
+                        }
+                    }
+                }
+                attribute_table.push(attr_arr);
+            }
+
+            // then, use attribute table to parse string
+            for(let k=0;k<attribute_table.length;k++){
+                for(let l=0;l<attribute_table[k].length;l++){
+                    parsed_string += SS(attribute_table[k][l])
+                }
+                parsed_string += utf8_encode(contents[k]["insert"])
+            }
+
+            let chop_arr = parsed_string.split("\n");
+
+            if(chop_arr.length == 0){
+                return "";
+            }else if(chop_arr.length == 1){
+                return chop_arr[0];
+            }else{
+                if(chop_arr[1].length > 0){
+                    return chop_arr[0] + "\n" + chop_arr[1];
+                }else{
+                    return chop_arr[0];
+                }
+            }
+        },
+
+        load_motd(_motd_string){
+            let motd_array = [];
+
+            let _format_style_string = (char_code)=>{
+                const motd_colors = [
+                    "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+                    "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+                    "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+                ];
+
+                if(/^[0-9a-fA-F]$/.test(char_code)){
+                    return ["color",  motd_colors[parseInt(char_code, 16)] ]
+                }else if(char_code == "l"){
+                    return ['bold', true];
+                }else if(char_code == "m"){
+                    return ['strike', true];
+                }else if(char_code == "o"){
+                    return ['italic', true];
+                }else if(char_code == "n"){
+                    return ['underline', true];
+                }else{
+                    return null;
+                }
+            }
+
+            let motd_string = _motd_string;
+            // decode into utf-mode
+            motd_string = motd_string.replace(/\\u([0-9a-fA-F]{4})/g, function(match, p1){
+                return String.fromCharCode(parseInt(p1, 16));
+            });
+
+            motd_string = motd_string.trim();
+
+            // then add format
+            let format_table = motd_string.split("§r");
+
+            for(let i=0;i<format_table.length;i++){
+                let _text = format_table[i];
+                let f_arr = [];
+
+                var item = {};
+                if(_text.length > 0){
+                    if(/§([0-9a-flmon])/gi.test(_text) == true){
+                        f_arr = /§([0-9a-flmon])/gi.exec(_text);
+                    }
+                    _text = _text.replace(/§([0-9a-flmon])/gi, "");
+
+                    item['insert'] = _text;
+                    item['attributes'] = {};
+
+                    for(let j=1;j<f_arr.length;j++){
+                        let _format = _format_style_string(f_arr[j]);
+
+                        if(_format != null){
+                            let _format_key = _format[0];
+                            let _format_value = _format[1];
+                            item['attributes'][_format_key] = _format_value;
+                        }
+                    }
+                    motd_array.push(item);
+                }
+            }
+
+            //this.$refs.Quill.quillEditor.setContents(motd_array);
+            return ;
+        },
+
+        select_bold(){
+            this.isBold = ! this.isBold;
+        },
+
+        select_italic(){
+
+        },
+
+        select_underline(){
+
+        },
+
+        select_strike_through(){
+
+        },
+
+        select_color(color_name){
+            this.showColorBox = false;
+            this.editor.setTextColour(color_name);
+        }
+    }
+}
+</script>
+
+<style scoped>
+div.frame{
+    border: 1px solid #bbb;
+    height: 9rem;
+    overflow:hidden;
+}
+
+div.menubar{
+    height: 3rem;
+    border-bottom: 1px solid #bbb;
+    padding-left: 2rem;
+}
+
+div.menubar span.menu-item{
+    display: inline-block;
+    height: 100%;
+    width: 2rem;
+    line-height: 3rem;
+    cursor: pointer;
+}
+
+div.editor{
+    font-size: 1.6rem;
+    padding: 0.5rem 1rem;
+    outline: none;
+}
+/* color box */
+span.color-box{
+    border: 1px solid #aaa;
+    font-size: 1rem;
+    color: blue;
+    font-weight: bold;
+    display: inline-block;
+    position: relative;
+    z-index :1;
+    width: 1.5rem;
+    text-align: center;
+    box-sizing: border-box;
+    cursor:pointer;
+}
+
+span.color-box div.color-table{
+    position: absolute;
+    background-color: white;
+    z-index: 2;
+    top: 1.5rem;
+    left: -1px;
+    height: 5rem;
+    width: 10rem;
+    border: 1px solid #999;
+    padding: 0.15rem 0.25rem;
+}
+
+div.color-table span.color-block{
+    position: relative;
+    float: left;
+    height: 18px;
+    width: 18px;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+span.color-block:hover{
+    border:1px solid #888;
+}
+
+span.c{
+    display: block;
+    height: 12px;
+    width: 12px;
+    margin:2px;
+}
+</style>

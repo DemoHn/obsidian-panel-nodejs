@@ -329,17 +329,7 @@ export default {
             ws.bind("memory_change", this.on_memory_change);
             ws.bind("cpu_change",    this.on_cpu_change);
             ws.bind("log_update", this.on_log_update);
-
-            ws.bind_binary((binary) => {
-                const bin_arr = new Uint8Array(binary);
-
-                console.log(new Uint8Array(binary));
-                // read array
-                // protocol version 0x01
-                if(bin_arr.length >= 4){
-                    const _content_length = bin_arr[0] * 256 + bin_arr[1]; // 0xYY
-                }
-            })
+            
         },
         aj_get_properties(){
             let ws = new WebSocket();

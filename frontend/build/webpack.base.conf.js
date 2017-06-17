@@ -21,7 +21,7 @@ var _entry = {
       "vendors": [
           "./static/js/plugins/bootstrap/bootstrap.js",
           "./static/js/plugins/AdminLTE/app.js",
-          "./static/js/plugins/pace/pace.js",
+          "./static/js/plugins/pace/pace.js"
       ],
 };
 

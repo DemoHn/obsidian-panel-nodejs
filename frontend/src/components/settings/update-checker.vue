@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="wrap">
-        <div><span class="lb">当前版本：</span> <span class="version">{{ current_version }}</span></div>
+        <div><span class="lb">当前版本：</span> <span class="version">{{ "v"+ current_version }}</span></div>
         <div v-if="check_status == 0"><span class="lb-gray">正在检查更新 <i class="fa fa-spinner fa-spin fa-fw"></i></span></div>
         <div v-if="check_status == 1">
             <span class="lb-gray">更新检查失败 &nbsp;&nbsp;<button class="btn btn-default btn-xs" @click="check_update">&nbsp;重试&nbsp;</button></span>

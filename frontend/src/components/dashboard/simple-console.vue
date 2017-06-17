@@ -1,22 +1,23 @@
 <template lang="html">
     <div>
         <div class="choose-bar">
-            <span class="right-margin">输出编码</span>
-            <select style="font-size: 1.1rem;"> 
+            <!-- TODO: output encoding -->
+            <!-- <span class="right-margin">输出编码</span>
+            <select style="font-size: 1.1rem;" v-model="encoding"> 
                 <option value="auto">自动</option>
                 <option value="utf8">UTF-8</option>
                 <option value="gb2312">GB2312</option>
-                <option value="gb18030">GB18030</option>
+                <option value="gbk">GBK</option>
                 <option value="big5">BIG-5</option>
-            </select>
+            </select> -->
             <!-- -->
             <span class="right-margin"></span><span class="right-margin"></span>
             <span class="right-margin">缓冲区大小</span>
-            <select style="font-size: 1.1rem;"> 
+            <select style="font-size: 1.1rem;" v-model="buffer_size"> 
                 <option value="200">200</option>
                 <option value="500">500</option>
                 <option value="1000">1000</option>
-                <option value="2000" selected>2000</option>
+                <option value="2000">2000</option>
                 <option value="5000">5000</option>
             </select>
             
@@ -39,7 +40,9 @@
             return {
                 content_arr : [],
                 command_content : "",
-                input_disabled : false
+                input_disabled : false,
+                buffer_size: 2000,
+                encoding: "auto"
             }
         },
         methods:{
@@ -56,8 +59,39 @@
                 })
             },
             // $ref API
-            append_log(log_obj){
-                this.content_arr.push(log_obj);
+            append_log(log_data){
+                    
+                let log_obj = {
+                    'type' : "O",
+                    'log':''
+                }
+
+                // using log buffer protocol v2
+                // parse log
+                if(log_data[0] == "1"){
+                    if(/^[0-9][0-9]{5}[IOE]/.test(log_data)){
+                        let _length = parseInt(log_data.slice(1, 6));
+                        let _type   = log_data[6];
+                        let _log    = log_data.slice(7, 7+_length);
+
+                        log_obj['type'] = _type;
+                        log_obj['log'] = _log;
+                        
+                        this.content_arr.push(log_obj);
+                    }
+                }
+
+                // shift out oldest line when buffer is full
+                let _array_size = this.content_arr.length;
+                let _buffer_size = parseInt(this.buffer_size);
+
+                if(_array_size > _buffer_size){
+                    let _shift_line_num = _array_size - _buffer_size;
+                    while(_shift_line_num > 0){
+                        this.content_arr.shift();
+                        _shift_line_num -= 1;
+                    }
+                }
                 let v = this;
                 this.$nextTick(()=>{
                     v.scroll_to_bottom();

@@ -611,7 +611,6 @@ module.exports = {
               ServerInstance = model.get("ServerInstance"),
               ServerCore = model.get("ServerCore"),
               JavaBinary = model.get("JavaBinary");
-
         const _edit_item = {
             // standard edit item format:
             // resolve: true | false, e.g.: resolve(true)
@@ -743,7 +742,9 @@ module.exports = {
                         let s_p_config = value;
 
                         ServerInstance.findOne({
-                            inst_id: req._inst_id
+                            where:{
+                                inst_id: req._inst_id
+                            }
                         }).then(
                             (data) => {
                                 const inst_dir = data.inst_dir;
@@ -768,14 +769,14 @@ module.exports = {
 
             _motd(value){
                 return new Promise((resolve, reject) => {
-
                     ServerInstance.findOne({
-                        inst_id: req._inst_id
-                    }).then(
+                            where:{
+                                inst_id: req._inst_id
+                            }
+                        }).then(
                         (data) => {
                             const inst_dir = data.inst_dir;
                             let parser = new Parser(utils.resolve(inst_dir, "server.properties"));
-                            parser.loads();
                             parser.replace("motd", value);
                             parser.dumps();
                             delete parser;

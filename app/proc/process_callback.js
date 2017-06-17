@@ -14,11 +14,6 @@ const _send_message = (inst_id, event, value) => {
     }
 };
 
-const _send_message_binary = (binary) => {
-    const io = require("../index").io;
-    io.emit("message_binary", binary);
-}
-
 class MCProcessCallback {
     constructor(){
 
@@ -34,20 +29,9 @@ class MCProcessCallback {
         // analyse log string
         this._log_string_analyse(inst_id, _log);
 
-        let _model = {
-            type: 'O',
-            log: _log
-        };
-
-        if(pipe == 1){
-            _model['type'] = 'O';
-        }else if(pipe == 2){
-            _model['type'] = 'E';
-        };
-        _send_message(inst_id, "log_update", _model);
-
-        const _buf = inst_pool.get_info(inst_id).format_log(pipe, log);
-        _send_message_binary(_buf);
+        const _formatted_log = inst_pool.get_info(inst_id).format_log(pipe, log, "auto");
+        _send_message(inst_id, "log_update", _formatted_log);
+        
     }
 
     on_instance_start(inst_id){
