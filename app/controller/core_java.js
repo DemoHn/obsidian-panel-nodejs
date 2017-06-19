@@ -208,10 +208,10 @@ const _install_java_binary = (major_version, minor_version, res, hash, java_bina
 const java_download_list = () => {
     const base_link = [
         /*major,minor,link*/
-        [8,112,"http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112"],
-        [8,102,"http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102"],
-        [8,101,"http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101"],
-        [7,80,"http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80"],
+        [8,131,"http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jre-8u131"],
+      /*  [8,121,"http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121"],
+        [8,111,"http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111"],
+        [7,80,"http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80"],*/
     ];
 
     let _model_arr = [];
