@@ -900,7 +900,7 @@ module.exports = {
             if(err){
                 console.log(err);
                 res.error(500);
-            }else if(/java version "(.+)"/i.test(stderr) === true){ // system java has installed
+            }else if(/version "(.+)"/i.test(stderr) === true){ // system java has installed
                 // and check if it has been installed already
                 JavaBinary.findOne({where: {bin_directory: java_exec}}).then((data)=>{
                     if(data != null)
