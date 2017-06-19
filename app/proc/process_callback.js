@@ -111,9 +111,12 @@ class MCProcessCallback {
                 re_done_str_torch.test(log_str) === true
             ) && 
             inst_pool.get_status(inst_id) == utils.STARTING){
-            let m = re_done_str.exec(log_str);
+            let m = re_done_str.exec(log_str) || re_done_str_torch.exec(log_str);
 
-            let start_time = m[1];
+            let start_time = -1.0;
+            if(m != null && m.length > 1){
+                start_time = m[1];
+            }
             if(utils.types.likeNumber(start_time) === true){
                 start_time = parseFloat(start_time);
             }else{
