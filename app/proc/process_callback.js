@@ -99,12 +99,17 @@ class MCProcessCallback {
 
     _log_string_analyse(inst_id, log_str){
         const re_done_str = /Done \(([0-9.]+)s\)!/,
+              re_done_str_torch = /Ready for connections! \(([0-9.]+)s\)/,
               re_login_str = /^\[\d\d:\d\d:\d\d INFO\]: (.*)\[(.*)\] logged in/,
               re_logout_str = /^\[\d\d:\d\d:\d\d INFO\]: (.*) left the game/,
               re_UUID_str = /UUID of player (.*) is (.*)/,
               re_online_user_str = /There are ([0-9]+)\/([0-9]+) players/;
         
-        if(re_done_str.test(log_str) === true && 
+        if(
+            (
+                re_done_str.test(log_str) === true || 
+                re_done_str_torch.test(log_str) === true
+            ) && 
             inst_pool.get_status(inst_id) == utils.STARTING){
             let m = re_done_str.exec(log_str);
 
