@@ -11,5 +11,4 @@ var svc = new Service({
     errlog: utils.get_config()['global']['log_file'] 
 });
 
-console.log(process.execPath)
 module.exports = svc;

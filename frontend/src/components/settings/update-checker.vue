@@ -89,7 +89,9 @@
                 release_date: null,
                 // check_status -> 2
                 update_status: 0,
-                count_down : 30
+                count_down : 30,
+
+                _filename: null
             }
 
             return rtn;
@@ -117,6 +119,7 @@
                     // write down version info data
                     this.update_version = response.info.version;
                     this.release_date = response.info.release_date;
+                    this._filename = response.info.filename;
                     this.check_status = 1;
                 }else{
                     this.upload_status = -4;
@@ -150,15 +153,7 @@
                     }
                 }, 1000);
                 //TODO
-                /*this.aj_execute_update((msg)=>{
-                    if(msg == false){
-                        v.update_status = 2;
-                    }else{
-                        v.update_status = 3;
-                    }
-                },(code)=>{
-                    v.update_status = 2;
-                });*/
+                this.aj_execute_update();
             },
             cancel_update(){
                 this.check_status = 0;
@@ -168,16 +163,9 @@
                 // after upgrading, it's time to upgrade 
             },
             aj_execute_update(){
-              /*  ws.ajax("GET","/super_admin/settings/execute_update",(msg)=>{
-                    if(typeof(callback) === "function"){
-                        callback(msg);
-                    }
-                },(code)=>{
-                    if(typeof(cb_error) === "function"){
-                        cb_error(code);
-                    }
-                })*/
+                ws.ajax("GET","/super_admin/settings/execute_upgrade_script?bundle="+this._filename);
             },
+
             aj_get_current_version(callback){
                 ws.ajax("GET","/super_admin/settings/get_current_version",(msg)=>{
                     if(typeof(callback) === "function"){

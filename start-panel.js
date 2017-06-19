@@ -184,7 +184,7 @@ if(argv[2] === "-t"){
     const _downloader_module = path.resolve(__dirname, "tools/downloader");
     const _os_service_module = path.resolve(__dirname, "tools/os_service");
     const _unzip_module = path.resolve(__dirname, "tools/unzip");
-
+    const _upgrade_module = path.resolve(__dirname, "tools/upgrade");
     try {
         if(module_name === "downloader"){
             cp.fork(_downloader_module, module_args);
@@ -192,6 +192,8 @@ if(argv[2] === "-t"){
             cp.fork(_os_service_module, module_args);
         }else if(module_name === "unzip"){
             cp.fork(_unzip_module, module_args);
+        }else if(module_name === "upgrade"){
+            cp.fork(_upgrade_module, module_args);
         }
         
     } catch (error) {

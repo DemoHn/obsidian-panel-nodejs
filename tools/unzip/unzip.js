@@ -4,7 +4,7 @@ const cp = require("child_process");
 const path = require("path");
 const mkdirp = require("mkdirp");
 
-module.exports = (target, dest, type) => {
+module.exports = (target, dest, type, callback) => {
     let exec_name;
     if(/^win/.test(os.platform())){
         exec_name = "7za.exe";
@@ -24,11 +24,18 @@ module.exports = (target, dest, type) => {
             console.log(stderr);          
         });
 
-        proc.on("exit", (code)=> {            
-            return code;
+        proc.on("exit", (code)=> {
+            if(callback != null){
+                callback(code);
+            }else{
+                return code;
+            }
         })
     }else{
         console.log(`no such --type option '${type}' !`);
-        return -1;
+        if(callback != null)
+            callback(-1)
+        else
+            return -1;
     }
 };

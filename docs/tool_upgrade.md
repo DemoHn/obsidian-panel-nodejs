@@ -1,5 +1,7 @@
 ## Upgrade Tool Documentation
 
+## [DEPRECATED]
+
 _Author: Nigshoxiz_   
 _Last Update: 17/06/2017_  
 

@@ -1,12 +1,13 @@
 {
   "name": "obsidian-panel",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A Minecraft Server Management Panel (commercial)",
   "main": "start.js",
   "scripts": {
     "test": "mocha --recursive",
     "init": "npm install && cd frontend && npm install && cd .. ",
     "build": "node bin/build.js",
+    "build_bin": "node bin/build.js bin",
     "clean": "rm -rf dist",
     "panel": "node start-panel.js",
     "count": "cloc --exclude-dir=node_modules,frontend,env,static ."

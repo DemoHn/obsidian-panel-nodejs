@@ -89,7 +89,8 @@ module.exports = {
                     // verify 
                     let rtn_model = {
                         version: doc["version"],
-                        release_date: doc["release_date"]
+                        release_date: doc["release_date"],
+                        filename: filename
                     }
 
                     let _verify_result = _verify_version_requirement(doc["min_requirement"], doc["version"]);
@@ -110,17 +111,30 @@ module.exports = {
             }
         });
     },
-    
-    // No.2 Extract the new bundle to current directory
-    // we will firstly remove obsidian-panel-new-version/ directory and then create a brand new one in which the extract files will be extracted. 
-    extract_bundle: (req, res, next) => {
 
-    },
-
-    // No.3 Execute upgrade script to upgrade all files
+    // No.2 Execute upgrade script to upgrade all files
     // Notice the script will shutdown the process to finish this operation,
     // thus there won't be any response!
-    execute_upgrade_script: (req, res) => {
 
+    // @query bundle
+    execute_upgrade_script: (req, res) => {
+        // Monunment for Windows version:
+        // after many trials, I failed to implement auto-update via panel.
+        // Instead, it's better to implement it via C# launcher and upgrade-LTS.cmd
+        /*
+        const data_dir = utils.get_config()["global"]["data_dir"];
+        const file_dir = utils.resolve(data_dir, "files");
+
+        // for windows
+        const bundle_name = utils.resolve(file_dir, req.query.bundle);
+
+        const script_module = utils.resolve(utils.get_cwd(), "upgrade-LTS.cmd");
+        
+        let proc = cp.spawn("SilentCMD.exe", [script_module, bundle_name, "/LOG+:C:\\Projects\\TTT.txt"], {detached: true});
+        proc.unref();
+
+        res.success(200);
+        */
+        res.success(200);
     }
 };

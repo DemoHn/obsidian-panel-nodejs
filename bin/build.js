@@ -5,22 +5,24 @@ const mkdirp = require("mkdirp");
 const cp = require("child_process");
 const argv = process.argv;
 
-// 1. build frontend
-cp.execSync("npm run build", {cwd: path.resolve(__dirname, "..", "frontend"), stdio:[0,1,2]});
+if(argv.length < 3 || argv[2] !== "bin"){
+    // 1. build frontend
+    cp.execSync("npm run build", {cwd: path.resolve(__dirname, "..", "frontend"), stdio:[0,1,2]});
 
-// 2. rm -r static/js/*.map & rm -r static/css/*.map
-const root_static = path.resolve(__dirname, "..", "static");
-let js_dirs = fs.readdirSync(path.resolve(root_static, "js"));
-for(let i=0;i<js_dirs.length;i++){
-    if(/map$/.test(js_dirs[i]) === true){
-        fs.unlinkSync(path.resolve(root_static, "js", js_dirs[i]));
+    // 2. rm -r static/js/*.map & rm -r static/css/*.map
+    const root_static = path.resolve(__dirname, "..", "static");
+    let js_dirs = fs.readdirSync(path.resolve(root_static, "js"));
+    for(let i=0;i<js_dirs.length;i++){
+        if(/map$/.test(js_dirs[i]) === true){
+            fs.unlinkSync(path.resolve(root_static, "js", js_dirs[i]));
+        }
     }
-}
 
-let css_dirs = fs.readdirSync(path.resolve(root_static, "css"));
-for(let i=0;i<css_dirs.length;i++){
-    if(/map$/.test(css_dirs[i]) === true){
-        fs.unlinkSync(path.resolve(root_static, "css", css_dirs[i]));
+    let css_dirs = fs.readdirSync(path.resolve(root_static, "css"));
+    for(let i=0;i<css_dirs.length;i++){
+        if(/map$/.test(css_dirs[i]) === true){
+            fs.unlinkSync(path.resolve(root_static, "css", css_dirs[i]));
+        }
     }
 }
 
