@@ -1,33 +1,36 @@
 <template lang="html">
     <div class="wrap">
         <div><span class="lb">当前版本：</span> <span class="version">{{ "v"+ current_version }}</span></div>
-        <div v-if="check_status == 0">
-            <span class="des" v-if="upload_status == 0">点击以上传新版本之压缩包</span>
-            <span class="des" v-if="upload_status == 1">上传中 ({{ upload_progress + "%" }})</span>
-            <span class="des des-error" v-if="upload_status == -1">校验失败，请重新上传！</span>
-            <span class="des des-error" v-if="upload_status == -2">压缩包对应面板版本过低，无法安装！</span>
-            <span class="des des-error" v-if="upload_status == -3">面板版本过低，无法安装！</span>
-            <span class="des des-error" v-if="upload_status == -4">未知错误，请重新上传！</span>
-            <vue-file-upload
-                    ref="vueFileUploader"
-                    url="/super_admin/settings/upload_upgrade_package"
-                    name="files"
-                    label="选择文件"
-                    :filters = "filters"
-                    :events = 'cbEvents'
-                    @onAdd = "onAddItem"
-                    ></vue-file-upload>
-        </div>
-        <div v-if="check_status == 1">
-            <span class="lb">更新至：</span><span class="version">{{ "v" + update_version }}</span><br>
-            <span class="lb">发行日期：</span><span class="version">{{ release_date }}</span><br>
-            <span class="lb">是否更新？</span>
-            <button class="btn btn-primary btn-sm" @click="execute_update">确定</button>&nbsp;&nbsp;
-            <button class="btn btn-secondary btn-sm" @click="cancel_update">取消</button>
-        </div>
-        <div v-if="check_status == 2">
-            <div v-if="upgrade_status == 0"><span class='lb-gray'>更新面板中...</span> <span>{{ count_down }}</span></div>
-            <div v-if="upgrade_status == 1"><span class='lb-gray'>更新已完成，即将重新登录！</span> </div>
+        <div v-if="support_upgrade_via_panel === false"> <span class="des"><i>Windows平台不支持从面板更新，请使用启动器来更新！</i></span> </div>
+        <div v-if="support_upgrade_via_panel === true">
+            <div v-if="check_status == 0">
+                <span class="des" v-if="upload_status == 0">点击以上传新版本之压缩包</span>
+                <span class="des" v-if="upload_status == 1">上传中 ({{ upload_progress + "%" }})</span>
+                <span class="des des-error" v-if="upload_status == -1">校验失败，请重新上传！</span>
+                <span class="des des-error" v-if="upload_status == -2">压缩包对应面板版本过低，无法安装！</span>
+                <span class="des des-error" v-if="upload_status == -3">面板版本过低，无法安装！</span>
+                <span class="des des-error" v-if="upload_status == -4">未知错误，请重新上传！</span>
+                <vue-file-upload
+                        ref="vueFileUploader"
+                        url="/super_admin/settings/upload_upgrade_package"
+                        name="files"
+                        label="选择文件"
+                        :filters = "filters"
+                        :events = 'cbEvents'
+                        @onAdd = "onAddItem"
+                        ></vue-file-upload>
+            </div>
+            <div v-if="check_status == 1">
+                <span class="lb">更新至：</span><span class="version">{{ "v" + update_version }}</span><br>
+                <span class="lb">发行日期：</span><span class="version">{{ release_date }}</span><br>
+                <span class="lb">是否更新？</span>
+                <button class="btn btn-primary btn-sm" @click="execute_update">确定</button>&nbsp;&nbsp;
+                <button class="btn btn-secondary btn-sm" @click="cancel_update">取消</button>
+            </div>
+            <div v-if="check_status == 2">
+                <div v-if="upgrade_status == 0"><span class='lb-gray'>更新面板中...</span> <span>{{ count_down }}</span></div>
+                <div v-if="upgrade_status == 1"><span class='lb-gray'>更新已完成，即将重新登录！</span> </div>
+            </div>
         </div>
     </div>
 </template>
@@ -51,6 +54,7 @@
             let v = this;
             let rtn = {
                 current_version : "",
+                support_upgrade_via_panel: null,
                 check_status : 0,
                 upload_status : 0,
                 upload_progress: 0.0,
@@ -131,7 +135,16 @@
             _onProgressUpload(progress){
                 this.upload_progress = progress;
             },
-
+            check_support_upgrade(){
+                let v = this;
+                this.aj_check_support_upgrade((msg)=>{
+                    if(msg === true){
+                        v.support_upgrade_via_panel = true;
+                    }else{
+                        v.support_upgrade_via_panel = false;
+                    }
+                })
+            },
             get_current_version(){
                 let v = this;
                 this.aj_get_current_version((msg)=>{
@@ -155,6 +168,7 @@
                 //TODO
                 this.aj_execute_update();
             },
+
             cancel_update(){
                 this.check_status = 0;
             },
@@ -172,11 +186,19 @@
                         callback(msg);
                     }
                 })
+            },
+
+            aj_check_support_upgrade(callback){
+                ws.ajax("GET","/super_admin/settings/support_upgrade_via_panel",(msg)=>{
+                    if(typeof(callback) === "function"){
+                        callback(msg);
+                    }
+                })
             }
         },
         mounted(){
             this.get_current_version();
-            //this.check_update();
+            this.check_support_upgrade();
         }
     }
 </script>

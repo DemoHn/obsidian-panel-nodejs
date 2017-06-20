@@ -1,6 +1,6 @@
 {
   "name": "obsidian-panel",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A Minecraft Server Management Panel (commercial)",
   "main": "start.js",
   "scripts": {

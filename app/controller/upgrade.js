@@ -112,6 +112,13 @@ module.exports = {
         });
     },
 
+    support_upgrade_via_panel: (req, res) => {
+        if(/win/.test(os.platform())){ // currently not support on windows v0.6.3
+            res.success(false);
+        }else{
+            res.success(true);
+        }
+    },
     // No.2 Execute upgrade script to upgrade all files
     // Notice the script will shutdown the process to finish this operation,
     // thus there won't be any response!
@@ -122,19 +129,30 @@ module.exports = {
         // after many trials, I failed to implement auto-update via panel.
         // Instead, it's better to implement it via C# launcher and upgrade-LTS.cmd
         /*
-        const data_dir = utils.get_config()["global"]["data_dir"];
-        const file_dir = utils.resolve(data_dir, "files");
-
-        // for windows
-        const bundle_name = utils.resolve(file_dir, req.query.bundle);
-
-        const script_module = utils.resolve(utils.get_cwd(), "upgrade-LTS.cmd");
         
-        let proc = cp.spawn("SilentCMD.exe", [script_module, bundle_name, "/LOG+:C:\\Projects\\TTT.txt"], {detached: true});
-        proc.unref();
-
-        res.success(200);
         */
-        res.success(200);
+        if(/win/.test(os.platform())){
+            res.success(200);
+        }else{
+            // linux system
+            const upgrade_module = utils.resolve(
+                __dirname,
+                "../../tools/upgrade"
+            );
+
+            const data_dir = utils.get_config()["global"]["data_dir"];
+            const file_dir = utils.resolve(data_dir, "files");
+            const bundle_name = utils.resolve(file_dir, req.query.bundle);
+
+            const cmd_args = `--bundle=${bundle_name} --type=zip`;
+
+            let proc = cp.fork(upgrade_module, cmd_args.split(" "), {silent: true});
+
+            // get result from stdout
+            proc.on('exit', () => {
+                res.success(200);
+            });
+        }
+        
     }
 };

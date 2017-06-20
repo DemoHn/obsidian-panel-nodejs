@@ -60,9 +60,11 @@ router.get('/get_current_version', (req, res, next) => {
     res.success(version);
 });
 
+
 // upload package manually
 router.post("/upload_upgrade_package", files_upload.single('files'), upgrade_ctrl.verify_upgrade_bundle);
 
+router.get("/support_upgrade_via_panel", upgrade_ctrl.support_upgrade_via_panel);
 // execute upgrade script
 router.get("/execute_upgrade_script", upgrade_ctrl.execute_upgrade_script);
 
