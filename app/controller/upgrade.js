@@ -149,8 +149,11 @@ module.exports = {
             let proc = cp.fork(upgrade_module, cmd_args.split(" "), {silent: true});
 
             // get result from stdout
-            proc.on('exit', () => {
-                res.success(200);
+            proc.on('exit', (code) => {
+                if(code === 0)
+                    res.success(200);
+                else
+                    res.error(500, `Error Code: ${code}`);
             });
         }
         
