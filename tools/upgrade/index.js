@@ -30,7 +30,7 @@ const _copy_filter = (src, dst) => {
 }
 
 // Step 1: shutdown service
-service_operation("status", (code) => {
+service_operation("stop", (code) => {
     const _copy_files = () => {
         // Step 2: remove old bundle
         const upgrade_dir = path.resolve(os.tmpdir(), "upgrade-obsidian-panel");
@@ -65,22 +65,10 @@ service_operation("status", (code) => {
         }
     }
 
-    if(code == "stopped"){
-        _copy_files();
-    }else if(code == "running"){
-        service_operation("stop", (code) => {
-            if(code === 0){
-                _copy_files();
-            }else{
-                console.log("<Fatal error, upgrade process will stop>(STOP_SERV)");
-                return ;
-            }
-        });
+    if(code === 0){
+      _copy_files();
     }else{
-        console.log("<Fatal error, upgrade process will stop>(GET_STATUS)");
-        return ;
+      console.log("<Fatal error, upgrade process will stop>(STOP_SERV)");
+      return ;
     }
 });
-
-
-

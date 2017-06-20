@@ -3,18 +3,17 @@ const os = require("os");
 const cp = require("child_process");
 const path = require("path");
 const mkdirp = require("mkdirp");
+const utils = require("../../utils");
 
 module.exports = (target, dest, type) => {
     let exec_name;
     if(/^win/.test(os.platform())){
         exec_name = "7za.exe";
     }else{
-        // and get linux arch
         if(/64/.test(process.arch)){
-            exec_name = "./7za-x64";
+            exec_name = utils.resolve(utils.get_cwd(), "7za-x64");
         }else{
-            // 32 bit
-            exec_name = "./7za-x86"
+            exec_name = utils.resolve(utils.get_cwd(), "7za-x86");
         }
     }
 

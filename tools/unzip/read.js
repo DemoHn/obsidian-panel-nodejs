@@ -5,6 +5,7 @@ const mkdirp = require("mkdirp");
 const jschardet = require("jschardet");
 const iconv = require("iconv-lite");
 const cp = require("child_process");
+const utils = require("../../utils");
 
 // read file contents in the target
 let dir_tree = {};
@@ -40,9 +41,9 @@ module.exports = (target, type, callback) => {
         }else{
             // and get linux arch
             if(/64/.test(process.arch)){
-                exec_name = "./7za-x64";
+                exec_name = utils.resolve(utils.get_cwd(), "7za-x64");
             }else{
-                exec_name = "./7za-x86"
+                exec_name = utils.resolve(utils.get_cwd(), "7za-x86");
             }
         }
 
