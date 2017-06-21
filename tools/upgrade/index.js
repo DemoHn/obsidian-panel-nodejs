@@ -3,7 +3,6 @@ const fs  = require("fs-extra");
 const mkdirp = require("mkdirp");
 const os  = require("os");
 const path = require("path");
-const service_operation = require("../os_service");
 
 // node-getopt
 let opt = require('../../utils/getopt').create([
@@ -29,46 +28,35 @@ const _copy_filter = (src, dst) => {
     }
 }
 
-// Step 1: shutdown service
-service_operation("stop", (code) => {
-    const _copy_files = () => {
-        // Step 2: remove old bundle
-        const upgrade_dir = path.resolve(os.tmpdir(), "upgrade-obsidian-panel");
+const _copy_files = () => {
+    // Step 2: remove old bundle
+    const upgrade_dir = path.resolve(os.tmpdir(), "upgrade-obsidian-panel");
 
-        if(fs.existsSync(upgrade_dir)){
-            fs.removeSync(upgrade_dir);
-        }
-
-        // Step 3: extract bundle to upgrade dir
-        mkdirp.sync(upgrade_dir);
-
-        if(fs.existsSync(bundle)){
-            unzip(bundle, upgrade_dir, type, (rtn_code) => {
-                if(rtn_code === 0){
-                    // Step 4: copy files 
-                    const copy_source = path.resolve(upgrade_dir, "obsidian-panel");
-                    const copy_dest   = path.resolve(process.execPath, "..", "..");
-
-                    fs.copySync(copy_source, copy_dest, {filter: _copy_filter});
-
-                    service_operation("start", (code) => {
-                        return ;
-                    });
-                }else{
-                    console.log("<Fatal error, upgrade process will stop>(UNZIP)");
-                    return ;
-                }
-            });
-        }else{
-            console.log("<Fatal error, upgrade process will stop>(BUNDLE)");
-            return ;
-        }
+    if(fs.existsSync(upgrade_dir)){
+        fs.removeSync(upgrade_dir);
     }
 
-    if(code === 0){
-      _copy_files();
+    // Step 3: extract bundle to upgrade dir
+    mkdirp.sync(upgrade_dir);
+
+    if(fs.existsSync(bundle)){
+        unzip(bundle, upgrade_dir, type, (rtn_code) => {
+            if(rtn_code === 0){
+                // Step 4: copy files 
+                const copy_source = path.resolve(upgrade_dir, "obsidian-panel");
+                const copy_dest   = path.resolve(process.execPath, "..", "..");
+
+                fs.copySync(copy_source, copy_dest, {filter: _copy_filter});
+                return 0;
+            }else{
+                console.log("<Fatal error, upgrade process will stop>(UNZIP)");
+                return -1;
+            }
+        });
     }else{
-      console.log("<Fatal error, upgrade process will stop>(STOP_SERV)");
-      return ;
+        console.log("<Fatal error, upgrade process will stop>(BUNDLE)");
+        return -2;
     }
-});
+}
+
+_copy_files();

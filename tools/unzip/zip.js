@@ -5,7 +5,7 @@ const path = require("path");
 const mkdirp = require("mkdirp");
 const utils = require("../../utils");
 
-module.exports = (target, dest, type) => {
+module.exports = (target, dest, type, callback) => {
     let exec_name;
     if(/^win/.test(os.platform())){
         exec_name = "7za.exe";
@@ -23,8 +23,12 @@ module.exports = (target, dest, type) => {
             console.log(stdout);            
         });
 
-        proc.on("exit", (code)=> {            
-            return code;
+        proc.on("exit", (code)=> {
+            if(callback != null){
+                callback(code);
+            }else{
+                return code;
+            }
         })
     }else{
         console.log(`no such --type option '${type}' !`);
