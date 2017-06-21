@@ -29,7 +29,7 @@
             </div>
             <div v-if="check_status == 2">
                 <div v-if="upgrade_status == 0"><span class='lb-gray'>更新面板中...</span> <span>{{ count_down }}</span></div>
-                <div v-if="upgrade_status == 1"><span class='lb-gray'>更新已完成，即将重新登录！</span> </div>
+                <div v-if="upgrade_status == 1"><span class='lb-gray'>更新已完成，请手动重启面板完成更新！</span> </div>
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
                 release_date: null,
                 // check_status -> 2
                 update_status: 0,
-                count_down : 30,
+                count_down : 20,
 
                 _filename: null
             }
@@ -159,7 +159,7 @@
                 let _f = setInterval(()=>{
                     if(v.count_down == 0){
                         v.upgrade_status = 1;
-                        v.exexute_redirect();
+                        v.execute_redirect();
                         clearInterval(_f);
                     }else{
                         v.count_down -= 1;
@@ -174,6 +174,7 @@
             },
 
             execute_redirect(){
+                this.upgrade_status = 1;
                 // after upgrading, it's time to upgrade 
             },
             aj_execute_update(){
