@@ -146,12 +146,9 @@ module.exports = {
 
             const cmd_args = `--bundle=${bundle_name} --type=zip`;
 
-            let proc = cp.fork(upgrade_module, cmd_args.split(" "), {silent: true});
-
-            // get result from stdout
-            proc.on('exit', () => {
-                res.success(200);
-            });
+            let proc = cp.fork(upgrade_module, cmd_args.split(" "), {detached: true, stdio: 'ignore'});
+            proc.unref();
+            res.success(200);
         }
         
     }
