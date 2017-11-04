@@ -4,6 +4,7 @@ _env/
 env/
 .vscode/
 dist/
+native/build
 config.yml
 static/css/*.app-*.css
 static/js/*

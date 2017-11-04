@@ -8,6 +8,7 @@
     "init": "npm install && cd frontend && npm install && cd .. ",
     "build": "node bin/build.js",
     "build_bin": "node bin/build.js bin",
+    "build_native": "cd native && node-gyp rebuild",
     "clean": "rm -rf dist",
     "panel": "node start-panel.js",
     "count": "cloc --exclude-dir=node_modules,frontend,env,static ."

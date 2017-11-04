@@ -9,6 +9,12 @@ const mkdirp = require("mkdirp");
 const proc = require("./app/proc");
 const utils = require("./utils");
 
+// TODO tmp
+const _w = (str) => {
+    fs.appendFileSync("C:\\Projects\\js.log", str, {encoding:"utf8"});
+}
+console.log = _w
+
 // check if config.yml exists
 
 // According to enclose's manual, if we setup the path like __dirname+"config.yml",
@@ -57,7 +63,7 @@ const check_config = () => {
         config = utils.get_config();
         log_file = config['global']['log_file'];
         data_dir = config['global']['data_dir'];
-        
+
         // mkdir -p ${data_dir}
         mkdirp.sync(data_dir);
         // == touch ${log_file}
@@ -171,6 +177,16 @@ const sync_model = () => {
       
 }
 
+////
+const service = require("native/build/Release/panel_cores");
+
+service.service_run();
+service.on_stop(function(){
+    console.log("recv stop");
+})
+
+////
+
 const argv = process.argv;
 
 if(argv[2] === "-t"){
@@ -205,6 +221,7 @@ if(argv[2] === "-t"){
     // run main
     let rc = update_config() && check_config();
 
+    _w("rc:" + rc);
     if(rc === 1){
         if(utils.get_startup_lock() === true){
             // launch directly, without sync db model
